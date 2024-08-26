@@ -1,5 +1,5 @@
 <?PHP
-ini_set("error_reporting", 1);
+// ini_set("error_reporting", 1);
 session_start();
 include "koneksi.php";
 ?>
@@ -14,8 +14,7 @@ include "koneksi.php";
 
 <body>
     <?php
-    $data = mysqli_query($con, "SELECT
-                                        *,
+    $data = sqlsrv_query($con, "SELECT  *,
                                         b.buyer,
                                         b.no_order,
                                         b.warna,
@@ -31,8 +30,8 @@ include "koneksi.php";
                                         LEFT JOIN db_dying.tbl_schedule b ON a.id_schedule = b.id
                                         LEFT JOIN db_dying.tbl_setting_mesin c ON b.nokk = c.nokk 
                                     WHERE
-                                        ( a.`status` = 'antri mesin' OR a.`status` = 'sedang jalan' ) 
-                                        AND ( b.`status` = 'antri mesin' OR b.`status` = 'sedang jalan' ) 
+                                        ( a.[status] = 'antri mesin' OR a.[status] = 'sedang jalan' ) 
+                                        AND ( b.[status] = 'antri mesin' OR b.[status] = 'sedang jalan' ) 
                                     ORDER BY
                                         a.id ASC");
     $no = 1;
@@ -86,10 +85,10 @@ include "koneksi.php";
                         <tbody>
                             <?php
                             $col = 0;
-                            while ($rowd = mysqli_fetch_array($data)) {
+                            while ($rowd = sqlsrv_fetch_array($data)) {
                                 $bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
-                                $qCek = mysqli_query($con, "SELECT id as idb FROM tbl_hasilcelup WHERE id_montemp='$rowd[idm]' LIMIT 1");
-                                $rCEk = mysqli_fetch_array($qCek);
+                                $qCek = sqlsrv_query($con, "SELECT TOP 1 id as idb FROM db_dying.tbl_hasilcelup WHERE id_montemp='$rowd[idm]'");
+                                $rCEk = sqlsrv_fetch_array($qCek);
                             ?>
                                 <tr bgcolor="<?php echo $bgcolor; ?>">
                                     <td align="center"><?php echo $rowd['no_mesin']; ?></td>
@@ -126,17 +125,22 @@ include "koneksi.php";
                                     <td align="left">
                                         <?php if ($_SESSION['lvl_id10'] == "5") : ?>
                                             <a href="#" id='<?php echo $rowd['idm']; ?>' class="btn btn-xs bg-purple edit_jammasukkain">
-                                                <?php echo $rowd['jammasukkain']; ?>
+                                                <?php if($rowd['jammasukkain']!=NULL or $rowd['jammasukkain']!=''){echo $rowd['jammasukkain']->format('Y-m-d H:i:s');}
+                                                else echo NULL; ?>
                                             </a>
                                         <?php else : ?>
-                                            <?php echo $rowd['jammasukkain']; ?>
+                                            <?php if($rowd['jammasukkain']!=NULL or $rowd['jammasukkain']!=''){echo $rowd['jammasukkain']->format('Y-m-d H:i:s');}
+                                            else echo NULL; ?>
                                         <?php endif; ?>
                                         <br><br>
                                         <span class="label bg-red">
-                                            <?php echo $rowd['tgl_update']; ?>
+                                            <?php if($rowd['tgl_update']!=NULL or $rowd['tgl_update']!=''){echo $rowd['tgl_update']->format('Y-m-d H:i:s');}
+                                            else echo NULL; ?>
                                         </span>
                                     </td>
-                                    <td><?php echo $rowd['proses']; ?><br><i><?php echo $rowd['tgl_buat']; ?></i><br><i class="btn btn-xs bg-hijau"><?php echo $rowd['operator']; ?></i></td>
+                                    <td><?php echo $rowd['proses']; ?><br><i><?php if($rowd['tgl_buat']!= '' or $rowd['tgl_buat']!=NULL){
+                                        echo $rowd['tgl_buat']->format('Y-m-d');
+                                    } else echo NULL; ?></i><br><i class="btn btn-xs bg-hijau"><?php echo $rowd['operator']; ?></i></td>
                                     <td align="left"><span class="label bg-abu"><?php echo $rowd['nokk']; ?></span><br><?php echo $rowd['ket']; ?></td>
                                     <td align="center">
                                         <div class="btn-group">
