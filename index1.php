@@ -185,8 +185,8 @@ desired effect
         <div class="navbar-custom-menu">
           <ul class="nav navbar-nav">
             <?php
-            $qryNCP = mysqli_query($cond, "SELECT COUNT(*) as jml from tbl_ncp_qcf_new WHERE dept='DYE' AND ncp_in_dye='0'");
-            $rNCP = mysqli_fetch_array($qryNCP);
+            $qryNCP = sqlsrv_query($cond, "SELECT COUNT(*) AS jml FROM db_qc.tbl_ncp_qcf_new WHERE dept='DYE' AND ncp_in_dye='0'", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+            $rNCP = sqlsrv_fetch_array($qryNCP);
             ?>
             <!-- Notifications Menu -->
             <li class="dropdown notifications-menu">
@@ -200,8 +200,8 @@ desired effect
                 <li>
                   <!-- Inner Menu: contains the notifications -->
                   <ul class="menu">
-                    <?php $qryNCP1 = mysqli_query($cond, "SELECT no_ncp_gabungan,nokk,nokk_salinan FROM tbl_ncp_qcf_new WHERE dept='DYE' AND ncp_in_dye='0' ");
-                    while ($rNCP1 = mysqli_fetch_array($qryNCP1)) {
+                    <?php $qryNCP1 = sqlsrv_query($cond, "SELECT no_ncp_gabungan,nokk,nokk_salinan FROM db_qc.tbl_ncp_qcf_new WHERE dept='DYE' AND ncp_in_dye='0' ");
+                    while ($rNCP1 = sqlsrv_fetch_array($qryNCP1)) {
                       if ($rNCP1['nokk_salinan'] != "") {
                         $nokkNCP = $rNCP1['nokk_salinan'];
                       } else {
@@ -221,9 +221,12 @@ desired effect
                 <li class="footer"><a href="index1.php?p=Form-NCP">Tampil Semua</a></li>
               </ul>
             </li>
-            <?php $qryNCP2 = mysqli_query($con, "SELECT COUNT(*) as jml from tbl_ncp_memo
-			WHERE  (penyelesaian='' OR ISNULL(penyelesaian))");
-            $rNCP2 = mysqli_fetch_array($qryNCP2);
+            <?php
+
+            $qryNCP2 = sqlsrv_query($con, " SELECT COUNT(*) AS jml 
+            FROM db_dying.tbl_ncp_memo
+            WHERE penyelesaian = '' OR penyelesaian IS NULL", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+            $rNCP2 = sqlsrv_fetch_array($qryNCP2);
             ?>
             <!-- Tasks Menu -->
             <li class="dropdown tasks-menu">
@@ -237,12 +240,12 @@ desired effect
                 <li>
                   <!-- Inner menu: contains the tasks -->
                   <ul class="menu">
-                    <?php $qryNCP3 = mysqli_query($cond, "SELECT id,no_ncp_gabungan FROM tbl_ncp_qcf_new
-				WHERE NOT ISNULL(tgl_rencana)
-				AND dept='DYE'
-				AND status='Belum OK'
-				");
-                    while ($rNCP3 = mysqli_fetch_array($qryNCP3)) {
+                    <?php $qryNCP3 = sqlsrv_query($cond, "SELECT id,no_ncp_gabungan FROM db_qc.tbl_ncp_qcf_new
+                    WHERE tgl_rencana IS NOT NULL
+                    AND dept = 'DYE'
+                    AND 'status' ='Belum OK'
+                    ");
+                    while ($rNCP3 = sqlsrv_fetch_array($qryNCP3)) {
                     ?>
                       <li><!-- Task item -->
                         <a href="index1.php?p=Status-NCP-NEW&id=<?php echo $rNCP3['id']; ?>">
@@ -274,9 +277,9 @@ desired effect
                 </li>
               </ul>
             </li>
-            <?php $qryNCP4 = mysqli_query($cond, "SELECT COUNT(*) as jml from tbl_ncp_qcf_new
-		  WHERE ISNULL(akar_masalah) or akar_masalah='' or ISNULL(solusi_panjang) or solusi_panjang=''");
-            $rNCP4 = mysqli_fetch_array($qryNCP4);
+            <?php $qryNCP4 = sqlsrv_query($cond, "SELECT COUNT(*) AS jml FROM db_qc.tbl_ncp_qcf_new
+		        WHERE akar_masalah IS NULL OR akar_masalah ='' OR  solusi_panjang IS NULL OR solusi_panjang = '' ");
+            $rNCP4 = sqlsrv_fetch_array($qryNCP4);
             ?>
             <!-- Revisi Menu -->
             <li class="dropdown tasks-menu">
@@ -290,11 +293,11 @@ desired effect
                 <li>
                   <!-- Inner menu: contains the tasks -->
                   <ul class="menu">
-                    <?php $qryNCP5 = mysqli_query($cond, "SELECT id,no_ncp_gabungan FROM tbl_ncp_qcf_new
-				WHERE (ISNULL(akar_masalah) or akar_masalah='' or ISNULL(solusi_panjang) or solusi_panjang='')
-				AND dept='DYE'
-				");
-                    while ($rNCP5 = mysqli_fetch_array($qryNCP5)) { ?>
+                    <?php $qryNCP5 = sqlsrv_query($cond, "SELECT id,no_ncp_gabungan FROM db_qc.tbl_ncp_qcf_new
+                    WHERE akar_masalah IS NULL OR akar_masalah ='' OR  solusi_panjang IS NULL OR solusi_panjang = ''
+                    AND dept = 'DYE'
+                    ");
+                    while ($rNCP5 = sqlsrv_fetch_array($qryNCP5)) { ?>
                       <li><!-- Task item -->
                         <a href="index1.php?p=Status-NCP-NEW&id=<?php echo $rNCP5['id']; ?>">
                           <!-- Task title and progress text -->
