@@ -285,7 +285,7 @@ if (date("H:i:s") >= "23:00:00" && date("H:i:s") <= "06:59:59") {
 				$rJam2 = sqlsrv_fetch_array($sqJam2);
 			} ?>
 			<div class="box-body table-responsive">
-				<i style="font-size: 8px;"><strong>Tgl: <?php echo $rJam2['tgl']; ?> SHIFT: 2</strong></i>
+				<i style="font-size: 8px;"><strong>Tgl: <?php echo $rJam2['tgl']->format('Y-m-d'); ?> SHIFT: 2</strong></i>
 				<table width="100%" border="0" id="tblr1" style="font-size: 8px;">
 					<thead class="bg-blue">
 						<tr align="center">
@@ -454,7 +454,7 @@ if (date("H:i:s") >= "23:00:00" && date("H:i:s") <= "06:59:59") {
 			}
 			?>
 			<div class="box-body table-responsive">
-				<i style="font-size: 8px;"><strong>Tgl: <?php echo $rJam3['tgl']; ?> SHIFT: 3 </strong></i>
+				<i style="font-size: 8px;"><strong>Tgl: <?php echo $rJam3['tgl']->format('Y-m-d'); ?> SHIFT: 3 </strong></i>
 				<table width="100%" border="0" id="tblr1" style="font-size: 8px;">
 					<thead class="bg-blue">
 						<tr align="center">
