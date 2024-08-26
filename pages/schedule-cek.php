@@ -1,7 +1,8 @@
 <?PHP
 ini_set("error_reporting", 1);
 session_start();
-include"koneksi.php";
+include "koneksi.php";
+include "utils/query.php";
 
 ?>
 
@@ -68,7 +69,9 @@ $ck		= isset($_POST['ck']) ? $_POST['ck'] : '';
       <div class="box-header with-border">
         <h3 class="box-title">Data Schedule</h3> 
 		<?php if($ck==1){?>  
-		<a href="#" onclick="confirm_delAll('?p=sch1_semua_hapus');" class="btn btn-danger <?php if($_SESSION['lvl_id10']=="3" or $rCEk['idb']!=""){echo "disabled"; } ?> pull-right"><i class="fa fa-trash"></i> Hapus Semua</a> 
+		<a href="#" onclick="confirm_delAll('?p=sch1_semua_hapus');" 
+    class="btn btn-danger <?php if($_SESSION['lvl_id10']=="3" or $rCEk['idb']!=""){echo "disabled"; } ?> pull-right">
+    <i class="fa fa-trash"></i> Hapus Semua</a> 
 		<?php } ?>  
 	  </div>
       <div class="box-body">
@@ -101,26 +104,34 @@ $ck		= isset($_POST['ck']) ? $_POST['ck'] : '';
 	if($ck=="1"){$nokk="";}else{ $nokk=" a.nokk='$nokk' and ";}
   $c=0;
   $no=0;
-/*$sql=mysqli_query("SELECT a.* FROM tbl_schedule a
-INNER JOIN tbl_montemp b ON a.id=b.id_schedule 
-WHERE $nokk ((a.`status`='selesai' AND b.`status`='sedang jalan') or (a.`status`='sedang jalan' AND b.`status`='selesai') or (mc_from='' and no_urut='' and no_mesin='' and (a.`status`='sedang jalan' or a.`status`='antri mesin')))");*/	
+
+  /*$sql=sqlsrv_query("SELECT a.* FROM tbl_schedule a
+  INNER JOIN tbl_montemp b ON a.id=b.id_schedule 
+  WHERE $nokk ((a.`status`='selesai' AND b.`status`='sedang jalan') or 
+  (a.`status`='sedang jalan' AND b.`status`='selesai') or (mc_from='' and no_urut='' and no_mesin='' 
+  and (a.`status`='sedang jalan' or a.`status`='antri mesin')))");*/	
 	
-  $sql=mysqli_query($con,"SELECT a.* FROM tbl_schedule a
-INNER JOIN tbl_montemp b ON a.id=b.id_schedule 
-WHERE $nokk ((not a.`status`=b.`status`) or (mc_from='' and no_urut='' and no_mesin='' and (a.`status`='sedang jalan' or a.`status`='antri mesin')))");	
-  while($rowd=mysqli_fetch_array($sql)){
+  $sql=sqlsrv_query($con,"SELECT a.* FROM db_dying.tbl_schedule a
+  INNER JOIN db_dying.tbl_montemp b ON a.id=b.id_schedule 
+  WHERE $nokk ((not a.[status]=b.[status]) or 
+  (mc_from='' and no_urut='' and no_mesin='' 
+  and (a.[status]='sedang jalan' or a.[status]='antri mesin')))");	
+
+  while($rowd=resultSelect(sqlsrv_fetch_array($sql))){
 	 	$no++;
 		$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
 	?>
    <tr bgcolor="<?php echo $bgcolor; ?>" class="table table-bordered table-hover table-striped">
      <td align="center"><?php echo $rowd['g_shift'];?><br>
-	   <a href="#" onclick="confirm_del('?p=sch1_hapus&id=<?php echo $rowd['id'] ?>');" class="btn btn-xs btn-danger <?php if($_SESSION['lvl_id10']=="3" or $rCEk['idb']!=""){echo "disabled"; } ?>"><i class="fa fa-trash"></i> </a></td>
+	   <a href="#" onclick="confirm_del('?p=sch1_hapus&id=<?php echo $rowd['id'] ?>');" 
+     class="btn btn-xs btn-danger <?php if($_SESSION['lvl_id10']=="3" or $rCEk['idb']!=""){echo "disabled"; } ?>">
+     <i class="fa fa-trash"></i> </a></td>
      <td align="center"><?php echo $rowd['kapasitas'];?></td>
      <td align="center"><?php echo $rowd['no_mesin'];?></td>
      <td align="center"><?php echo $rowd['no_sch'];?></td>
-	 <?php if($ck==1){ ?>  
-     <td align="center"><?php echo $rowd['nokk'];?></td>
-	 <?php } ?>  
+    <?php if($ck==1){ ?>  
+      <td align="center"><?php echo $rowd['nokk'];?></td>
+    <?php } ?>  
      <td align="center"><?php echo $rowd['buyer'];?></td>
      <td align="center"><?php echo $rowd['no_order'];?></td>
      <td><?php echo $rowd['jenis_kain'];?></td>
@@ -176,17 +187,19 @@ WHERE $nokk ((not a.`status`=b.`status`) or (mc_from='' and no_urut='' and no_me
 	</div>
 </body>
 </html>
+
 <script type="text/javascript">
-              function confirm_del(delete_url) {
-                $('#delSchedule').modal('show', {
-                  backdrop: 'static'
-                });
-                document.getElementById('del_link').setAttribute('href', delete_url);
-              }
-			  function confirm_delAll(delete_url) {
-                $('#delScheduleAll').modal('show', {
-                  backdrop: 'static'
-                });
-                document.getElementById('del_link1').setAttribute('href', delete_url);
-              }
-            </script>
+    function confirm_del(delete_url) {
+            $('#delSchedule').modal('show', {
+              backdrop: 'static'
+            });
+            document.getElementById('del_link').setAttribute('href', delete_url);
+    }
+
+    function confirm_delAll(delete_url) {
+            $('#delScheduleAll').modal('show', {
+              backdrop: 'static'
+            });
+            document.getElementById('del_link1').setAttribute('href', delete_url);
+    }
+</script>
