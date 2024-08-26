@@ -1,9 +1,7 @@
 <?php
 ini_set("error_reporting", 1);
 session_start();
-include"koneksi.php";
-//include_once('koneksi.php');
-//include 'ajax/logic_chart.php';
+include "../koneksi.php";
 ?>
 <?php
 if (!isset($_SESSION['user_id10']) || !isset($_SESSION['pass_id10'])) {
@@ -48,11 +46,6 @@ $page  = strtolower($page);
             'November',
             'Desember'
           );
-          // $sqlsvr = sqlsrv_query($conn,"select count(*) as jml,MONTH(GETDATE()) as bln,YEAR(GETDATE()) as thn from
-          //                       NCP ncp inner join
-          //                       ProcessControlBatches pcb on ncp.PCBID = pcb.ID 
-          //                       where ncp.DocumentNo LIKE 'DYE%' and convert(char(7),ncp.Dated,120)=convert(char(7),GETDATE(),120)");
-          // $rsvr = sqlsrv_fetch_array($sqlsvr);
           ?>
           <h3><?php echo $rsvr['jml']; ?></h3>
           <p>NCP Dyeing Bulan <?php echo $bulan[$rsvr['bln']] . " " . $rsvr['thn']; ?></p>
@@ -70,13 +63,7 @@ $page  = strtolower($page);
       <!-- small box -->
       <div class="small-box bg-green">
         <div class="inner">
-          <?php
-          // $sqlsvr1 = sqlsrv_query($conn,"select count(*) as jml,YEAR(GETDATE()) as thn from
-          //                     NCP ncp inner join
-          //                     ProcessControlBatches pcb on ncp.PCBID = pcb.ID 
-          //                     where ncp.DocumentNo LIKE 'DYE%' and convert(char(4),ncp.Dated,120)=convert(char(4),GETDATE(),120)");
-          // $rsvr1 = sqlsrv_fetch_array($sqlsvr1);
-          ?>
+
           <h3><?php echo $rsvr1['jml']; ?></h3>
           <p>NCP Dyeing Tahun <?php echo $rsvr1['thn']; ?></p>
         </div>
@@ -91,12 +78,7 @@ $page  = strtolower($page);
     <div class="col-lg-3 col-xs-6">
       <div class="small-box bg-yellow">
         <div class="inner">
-          <?php
-          /*$sql1 = mysqli_query("SELECT count(*) as jml FROM tbl_monitoring a 
-	                            INNER JOIN tbl_sample b ON a.id_sample=b.id", $con);
-          $r1 = mysqli_fetch_array($sql1);*/
-          ?>
-          <h3>0<?php /*echo $r1[jml];*/ ?></h3>
+          <h3>0</h3>
 
           <p>Data MPC</p>
         </div>
@@ -114,10 +96,11 @@ $page  = strtolower($page);
       <div class="small-box bg-red">
         <div class="inner">
           <?php
-          $sql = mysqli_query($con,"SELECT count(*) as jml,DATE_FORMAT(now(),'%Y') as thn FROM tbl_monitoring a 
-                              INNER JOIN tbl_sample b ON a.id_sample=b.id
-                              WHERE DATE_FORMAT(tgl_monitor,'%Y')=DATE_FORMAT(now(),'%Y')");
-          $r = mysqli_fetch_array($sql);
+          $sql = sqlsrv_query($con, "SELECT COUNT(*) AS jml, YEAR(GETDATE()) AS thn 
+          FROM db_dying.tbl_monitoring a 
+          INNER JOIN db_dying.tbl_sample b ON a.id_sample = b.id
+          WHERE YEAR(tgl_monitor) = YEAR(GETDATE())");
+          $r = sqlsrv_fetch_array($sql);
           ?>
           <h3><?php echo $r['jml']; ?></h3>
 
@@ -133,15 +116,7 @@ $page  = strtolower($page);
     </div>
   </div>
   <!-- END 4 Kotak Dashboard -->
-  <!--<div class="row" style="margin-top: 10px;" id="table_matching">
-    <div class="col-md-12">
-      <div class="box">
-        <figure class="highcharts-figure">
-          <div id="container"></div>
-        </figure>
-      </div>
-    </div>
-  </div>-->
+
 
   <!-- ////////////////////////////////////////////////////////////////////// ASSET ////////////////////////////////////////////////////////////////////// -->
   <script src="plugins/highcharts/code/highcharts.js"></script>
