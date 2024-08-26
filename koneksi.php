@@ -6,7 +6,7 @@ $usernameSVR19 = "sa";
 $passwordSVR19 = "Ind@taichen2024";
 $dying = "db_dying";
 $qc = "db_qc";
-$nowprd = "nowprd_cache";
+$nowprd = "nowprd";
 $lab = "db_laborat";
 
 $db_dying = array("Database" => $dying, "UID" => $usernameSVR19, "PWD" => $passwordSVR19);
