@@ -1,53 +1,54 @@
 <?php
-    ini_set("error_reporting", 1);
-    include "../../koneksi.php";
+ini_set("error_reporting", 1);
+include "../../koneksi.php";
 ?>
 <html>
 
 <head>
-  <title>:: Cetak Reports Buka Resep</title>
-  <link href="styles_cetak.css" rel="stylesheet" type="text/css">
-  <style>
-    input {
-      text-align: center;
-      border: hidden;
-    }
+    <title>:: Cetak Reports Buka Resep</title>
+    <link href="styles_cetak.css" rel="stylesheet" type="text/css">
+    <style>
+        input {
+            text-align: center;
+            border: hidden;
+        }
 
-    @media print {
-      ::-webkit-input-placeholder {
-        /* WebKit browsers */
-        color: transparent;
-      }
+        @media print {
+            ::-webkit-input-placeholder {
+                /* WebKit browsers */
+                color: transparent;
+            }
 
-      :-moz-placeholder {
-        /* Mozilla Firefox 4 to 18 */
-        color: transparent;
-      }
+            :-moz-placeholder {
+                /* Mozilla Firefox 4 to 18 */
+                color: transparent;
+            }
 
-      ::-moz-placeholder {
-        /* Mozilla Firefox 19+ */
-        color: transparent;
-      }
+            ::-moz-placeholder {
+                /* Mozilla Firefox 19+ */
+                color: transparent;
+            }
 
-      :-ms-input-placeholder {
-        /* Internet Explorer 10+ */
-        color: transparent;
-      }
+            :-ms-input-placeholder {
+                /* Internet Explorer 10+ */
+                color: transparent;
+            }
 
-      .pagebreak {
-        page-break-before: always;
-      }
+            .pagebreak {
+                page-break-before: always;
+            }
 
-      .header {
-        display: block
-      }
+            .header {
+                display: block
+            }
 
-      table thead {
-        display: table-header-group;
-      }
-    }
-  </style>
+            table thead {
+                display: table-header-group;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <table border="0" style="width:100%" class="table-list1">
         <thead>
@@ -63,9 +64,9 @@
         </thead>
     </table>
     <?php
-        $id = $_GET['id'];
-        $q_matching_dyeing  = mysqli_query($con, "SELECT * FROM tbl_matching_dyeing WHERE id = '$id'");
-        $row_matching_dyeing = mysqli_fetch_assoc($q_matching_dyeing);
+    $id = $_GET['id'];
+    $q_matching_dyeing = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_matching_dyeing WHERE id = '$id'");
+    $row_matching_dyeing = sqlsrv_fetch_array($q_matching_dyeing, SQLSRV_FETCH_ASSOC);
     ?>
     <table border="0" style="width:100%" class="table-list1">
         <thead>
@@ -180,7 +181,7 @@
                 <td colspan="4"></td>
                 <td colspan="1"></td>
                 <td colspan="7"></td>
-            </tr>           
+            </tr>
         </thead>
     </table>
     <table border="0" style="width:100%" class="table-list1">
@@ -537,18 +538,24 @@
             </tr>
             <tr>
                 <td colspan="8">NAMA</td>
-                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33" maxlength="30"></td>
-                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33" maxlength="30"></td>
+                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33"
+                        maxlength="30"></td>
+                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33"
+                        maxlength="30"></td>
             </tr>
             <tr>
                 <td colspan="8">JABATAN</td>
-                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33" maxlength="30"></td>
-                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33" maxlength="30"></td>
+                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33"
+                        maxlength="30"></td>
+                <td colspan="10" align="center"><input name=nama type=text placeholder="Ketik disini" size="33"
+                        maxlength="30"></td>
             </tr>
             <tr>
                 <td colspan="8">TANGGAL</td>
-                <td colspan="10" align="center"><input name=nama type=text placeholder="dd-mm-yyyy" size="33" maxlength="30"></td>
-                <td colspan="10" align="center"><input name=nama type=text placeholder="dd-mm-yyyy" size="33" maxlength="30"></td>
+                <td colspan="10" align="center"><input name=nama type=text placeholder="dd-mm-yyyy" size="33"
+                        maxlength="30"></td>
+                <td colspan="10" align="center"><input name=nama type=text placeholder="dd-mm-yyyy" size="33"
+                        maxlength="30"></td>
             </tr>
             <tr>
                 <td colspan="8">TANDA TANGAN <br><br><br><br><br></td>
@@ -558,4 +565,5 @@
         </thead>
     </table>
 </body>
+
 </html>
