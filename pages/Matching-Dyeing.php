@@ -1,16 +1,18 @@
 <?php
 ini_set("error_reporting", 1);
 session_start();
-include "koneksi.php";
+include "../koneksi.php";
 $tgl1    = $_POST['tgl1'];
 $tgl2    = $_POST['tgl2'];
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Matching Dyeing</title>
+
 </head>
 
 <body>
@@ -19,13 +21,15 @@ $tgl2    = $_POST['tgl2'];
             <div class="box">
                 <div class="box-header">
                     <div class="col-sm-2">
-                        <a href="?p=Form-Matching-Dyeing" class="btn btn-success"><i class="fa fa-plus-circle"></i> Tambaha</a>
+                        <a href="?p=Form-Matching-Dyeing" class="btn btn-success"><i class="fa fa-plus-circle"></i>
+                            Tambaha</a>
                     </div>
                     <div class="col-sm-4">
                         <form action="" method="POST">
                             <input type="date" name="tgl1" class="input-sm" value="<?= $tgl1; ?>"> S/D
                             <input type="date" name="tgl2" class="input-sm" value="<?= $tgl2; ?>">
-                            <button type="submit" class="btn btn-primary btn-sm" name="sort"><i class="fa fa-search"></i> Sort</button>
+                            <button type="submit" class="btn btn-primary btn-sm" name="sort"><i
+                                    class="fa fa-search"></i> Sort</button>
                         </form>
                     </div>
                 </div>
@@ -77,196 +81,217 @@ $tgl2    = $_POST['tgl2'];
                         <tbody>
                             <?php
                             if ($tgl1 && $tgl2) {
-                                $_sortTgl = "DATE_FORMAT( SUBSTR(createdatetime, 1,10), '%Y-%m-%d' ) BETWEEN '$tgl1' AND '$tgl2'";
+                                $_sortTgl = "CONVERT(date, createdatetime ) BETWEEN '$tgl1' AND '$tgl2'";
                             } else {
-                                $_sortTgl = "SUBSTR(createdatetime, 1,10) BETWEEN DATE_SUB(SUBSTR(NOW(), 1,10), INTERVAL 1 DAY) AND SUBSTR(NOW(), 1,10)";
+                                $_sortTgl = "CONVERT(date, createdatetime ) BETWEEN DATEADD(DAY, -1, CONVERT(date, GETDATE())) AND CONVERT(date, GETDATE())";
                             }
-                            $q_matching_dye    = mysqli_query($con, "SELECT * FROM tbl_matching_dyeing WHERE $_sortTgl ORDER BY id DESC");
+
+                            $q_matching_dye = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_matching_dyeing WHERE $_sortTgl ORDER BY id DESC");
                             $no = 1;
                             ?>
-                            <?php while ($row_matching_dye = mysqli_fetch_array($q_matching_dye)) { ?>
-                                <tr bgcolor="antiquewhite">
-                                    <td align="center"><?= $no++; ?></td>
-                                    <td align="center"><?= $row_matching_dye['nokk'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['nodemand'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['langganan'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['buyer'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['no_order'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['jenis_kain'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['warna'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['jam_terima'] ?></td>
-                                    <td align="center"><?= $row_matching_dye['operator_penerima'] ?></td>
-                                    <?php
-                                    $q_history_terakhir     = mysqli_query($con, "SELECT * FROM tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC LIMIT 1");
-                                    $row_history_terakhir   = mysqli_fetch_assoc($q_history_terakhir);
+                            <?php while ($row_matching_dye = sqlsrv_fetch_array($q_matching_dye)) { ?>
+                            <tr bgcolor="antiquewhite">
+                                <td align="center"><?= $no++; ?></td>
+                                <td align="center"><?= $row_matching_dye['nokk'] ?></td>
+                                <td align="center"><?= $row_matching_dye['nodemand'] ?></td>
+                                <td align="center"><?= $row_matching_dye['langganan'] ?></td>
+                                <td align="center"><?= $row_matching_dye['buyer'] ?></td>
+                                <td align="center"><?= $row_matching_dye['no_order'] ?></td>
+                                <td align="center"><?= $row_matching_dye['jenis_kain'] ?></td>
+                                <td align="center"><?= $row_matching_dye['warna'] ?></td>
+                                <td align="center">
+                                    <?= ($row_matching_dye['jam_terima'] != null or $row_matching_dye['jam_terima'] != '') ? $row_matching_dye['jam_terima']->format('Y-m-d H:i:s') : ""; ?>
+                                </td>
+                                <td align="center"><?= $row_matching_dye['operator_penerima'] ?></td>
+                                <?php
+                                    $q_history_terakhir     = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC");
+                                    $row_history_terakhir   = sqlsrv_fetch_array($q_history_terakhir);
                                     ?>
-                                    <td align="center"><?= $row_history_terakhir['creationdatetime'] ?></td>
-                                    <td align="center"><?= $row_history_terakhir['operator_matcher'] ?></td>
-                                    <td>
-                                        <div class="btn-group">
+                                <td align="center">
+                                    <?= ($row_matching_dye['creationdatetime'] != null or $row_matching_dye['creationdatetime'] != '') ? $row_matching_dye['creationdatetime']->format('Y-m-d H:i:s') : ""; ?>
+                                </td>
+                                <td align="center"><?= $row_history_terakhir['operator_matcher'] ?></td>
+                                <td>
+                                    <div class="btn-group">
 
-                                            <p>
-                                                <button type="button" class="btn btn-success btn-xs" data-toggle="modal" data-target="#tahapan_matching<?= $row_matching_dye['id'] ?>">
-                                                    <i class="fa fa-exclamation-triangle" data-toggle="tooltip" data-placement="top" title="Tahapan Matching"></i> Tahapan Matching
+                                        <p>
+                                            <button type="button" class="btn btn-success btn-xs" data-toggle="modal"
+                                                data-target="#tahapan_matching<?= $row_matching_dye['id'] ?>">
+                                                <i class="fa fa-exclamation-triangle" data-toggle="tooltip"
+                                                    data-placement="top" title="Tahapan Matching"></i> Tahapan Matching
+                                            </button>
+                                        </p>
+
+                                        <p>
+                                            <button type="button" class="btn btn-primary btn-xs" data-toggle="modal"
+                                                data-target="#matching_dyeing<?= $row_matching_dye['id'] ?>">
+                                                <i class="fa fa-exclamation-triangle" data-toggle="tooltip"
+                                                    data-placement="top" title="Matching Dyeing"></i> Matching Dyeing
+                                            </button>
+                                        </p>
+
+                                        <p>
+                                            <button type="button" class="btn btn-default btn-xs" data-toggle="modal"
+                                                data-target="#acc_matching_dyeing<?= $row_matching_dye['id'] ?>">
+                                                <i class="fa fa-exclamation-triangle" data-toggle="tooltip"
+                                                    data-placement="top" title="Matching Dyeing"></i> Acc Matching
+                                                Dyeing
+                                            </button>
+                                        </p>
+
+                                        <p>
+                                            <a href="pages/cetak/reports-form-matching-print.php?&id=<?= $row_matching_dye['id']; ?>"
+                                                class="btn btn-warning btn-xs" target="_blank" data-toggle="tooltip"
+                                                data-html="true" title="Print Form Matching">
+                                                <i class="fa fa-print"></i> Print Form Matching
+                                            </a>
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Modal ACC MATCHING-->
+                            <div class="modal fade" id="acc_matching_dyeing<?= $row_matching_dye['id'] ?>" role="dialog"
+                                aria-labelledby="cekresep" aria-hidden="true">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <form class="form-horizontal" action="" method="post"
+                                            enctype="multipart/form-data" name="form1">
+                                            <div class="modal-header">
+                                                <h3 class="modal-title" id="exampleModalLabel">ACC MATCHING DYEING</h3>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
                                                 </button>
-                                            </p>
+                                            </div>
+                                            <?php
 
-                                            <p>
-                                                <button type="button" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#matching_dyeing<?= $row_matching_dye['id'] ?>">
-                                                    <i class="fa fa-exclamation-triangle" data-toggle="tooltip" data-placement="top" title="Matching Dyeing"></i> Matching Dyeing
-                                                </button>
-                                            </p>
-
-                                            <p>
-                                                <button type="button" class="btn btn-default btn-xs" data-toggle="modal" data-target="#acc_matching_dyeing<?= $row_matching_dye['id'] ?>">
-                                                    <i class="fa fa-exclamation-triangle" data-toggle="tooltip" data-placement="top" title="Matching Dyeing"></i> Acc Matching Dyeing
-                                                </button>
-                                            </p>
-
-                                            <p>
-                                                <a href="pages/cetak/reports-form-matching-print.php?&id=<?= $row_matching_dye['id']; ?>" class="btn btn-warning btn-xs" target="_blank" data-toggle="tooltip" data-html="true" title="Print Form Matching">
-                                                    <i class="fa fa-print"></i> Print Form Matching
-                                                </a>
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <!-- Modal ACC MATCHING-->
-                                <div class="modal fade" id="acc_matching_dyeing<?= $row_matching_dye['id'] ?>" role="dialog" aria-labelledby="cekresep" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg" role="document">
-                                        <div class="modal-content">
-                                            <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" name="form1">
-                                                <div class="modal-header">
-                                                    <h3 class="modal-title" id="exampleModalLabel">ACC MATCHING DYEING</h3>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <?php
-                                                $q_history_matching     = mysqli_query($con, "SELECT * FROM tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC LIMIT 1");
-                                                $row_history_matching   = mysqli_fetch_assoc($q_history_matching);
+                                                $id = $row_matching_dye['id'];
+                                                $q_history_matching     = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_matching_history WHERE id_matching = $id ORDER BY id DESC");
+                                                $row_history_matching   = sqlsrv_fetch_array($q_history_matching);
                                                 // cek sudah acc resep atau blm
-                                                $acc_or_no    = mysqli_query($con, "SELECT * FROM tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' AND acc_resep != '' AND acc_resep IS NOT NULL ORDER BY id DESC LIMIT 1");
-                                                $cek_acc = mysqli_num_rows($acc_or_no);
+                                                $acc_or_no    = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_matching_history WHERE id_matching = $id AND acc_resep != '' AND acc_resep IS NOT NULL ORDER BY id DESC", array(), array("Scrollable" => SQLSRV_CURSOR_STATIC));
+                                                $cek_acc = sqlsrv_num_rows($acc_or_no);
                                                 ?>
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="form-group">
-                                                                <input type="hidden" value="<?= $row_matching_dye['id'] ?>" name="id_matching">
-                                                                <label class="col-sm-3 control-label">Acc Resep</label>
-                                                                <div class="col-sm-9">
-                                                                    <select class="form-control select2" style="width: 100%" name="acc_resep">
-                                                                        <option selected disabled value="-">Dipilih</option>
-                                                                        <?php
-                                                                        $q_staff = mysqli_query($con, "SELECT * FROM tbl_staff ");
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <input type="hidden" value="<?= $id ?>" name="id_matching">
+                                                            <label class="col-sm-3 control-label">Acc Resep</label>
+                                                            <div class="col-sm-9">
+                                                                <select class="form-control select2" style="width: 100%"
+                                                                    name="acc_resep">
+                                                                    <option selected disabled value="-">Dipilih</option>
+                                                                    <?php
+                                                                        $q_staff = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_staff ");
                                                                         ?>
-                                                                        <?php while ($row_staff     = mysqli_fetch_array($q_staff)) { ?>
-                                                                            <option value="<?= $row_staff['nama']; ?>" <?php if ($row_staff['nama'] == $row_matching_dye['acc_resep']) {
+                                                                    <?php while ($row_staff     = sqlsrv_fetch_array($q_staff)) { ?>
+                                                                    <option value="<?= $row_staff['nama']; ?>"
+                                                                        <?php if ($row_staff['nama'] == $row_matching_dye['acc_resep']) {
                                                                                                                             echo "SELECTED";
-                                                                                                                        } ?>><?= $row_staff['nama']; ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
+                                                                                                                        } ?>><?= $row_staff['nama']; ?>
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
                                                             </div>
-                                                            <br>
-                                                            <br>
-                                                            <div class="form-group">
-                                                                <label for="nokk" class="col-sm-3 control-label">Percobaan Resep Ke</label>
-                                                                <div class="col-sm-9">
-                                                                    <select name="percobaan_ke" class="form-control select2" style="width: 100%">
-                                                                        <option value="" disabled selected>Pilih percobaan ke</option>
-                                                                        <?php
-                                                                        $q_percobaanke  = mysqli_query($con, "SELECT * FROM tbl_matching_history WHERE id_matching = '$row_matching_dye[id]'");
+                                                        </div>
+                                                        <br>
+                                                        <br>
+                                                        <div class="form-group">
+                                                            <label for="nokk" class="col-sm-3 control-label">Percobaan
+                                                                Resep Ke</label>
+                                                            <div class="col-sm-9">
+                                                                <select name="percobaan_ke" class="form-control select2"
+                                                                    style="width: 100%">
+                                                                    <option value="" disabled selected>Pilih percobaan
+                                                                        ke</option>
+                                                                    <?php
+                                                                        $q_percobaanke  = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_matching_history WHERE id_matching = $id");
                                                                         ?>
-                                                                        <?php while ($row_percobaanke     = mysqli_fetch_array($q_percobaanke)) { ?>
-                                                                            <option value="<?= $row_percobaanke['ok_ke']; ?>" <?php if ($_POST['ok_ke'] == $row_percobaanke['id']) {
+                                                                    <?php while ($row_percobaanke     = sqlsrv_fetch_array($q_percobaanke)) { ?>
+                                                                    <option value="<?= $row_percobaanke['ok_ke']; ?>"
+                                                                        <?php if ($_POST['ok_ke'] == $row_percobaanke['id']) {
                                                                                                                                     echo "SELECTED";
                                                                                                                                 } ?>>
-                                                                                percobaan ke -<?= $row_percobaanke['ok_ke']; ?>
-                                                                                Pemberi Resep : (<?= $row_percobaanke['pemberi_resep']; ?>),
-                                                                                Operator Matcher : (<?= $row_percobaanke['operator_matcher']; ?>),
-                                                                                Note : (<?= $row_percobaanke['note']; ?>)
-                                                                                Time : (<?= $row_percobaanke['creationdatetime']; ?>)
-                                                                            </option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
+                                                                        percobaan ke -<?= $row_percobaanke['ok_ke']; ?>
+                                                                        Pemberi Resep :
+                                                                        (<?= $row_percobaanke['pemberi_resep']; ?>),
+                                                                        Operator Matcher :
+                                                                        (<?= $row_percobaanke['operator_matcher']; ?>),
+                                                                        Note : (<?= $row_percobaanke['note']; ?>)
+                                                                        Time :
+                                                                        (<?= ($row_percobaanke['creationdatetime'] != null or $row_percobaanke['creationdatetime'] != '') ? $row_percobaanke['creationdatetime']->format('Y-m-d') : ''; ?>)
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                    <!-- cek sudah acc resep atau blm -->
-                                                    <?php if ($cek_acc < 1) { ?>
-                                                        <button type="submit" class="btn btn-primary pull-right" name="update_acc" value="save">Simpan <i class="fa fa-save"></i></button>
-                                                    <?php } ?>
-                                                </div>
-                                            </form>
-                                        </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <!-- cek sudah acc resep atau blm -->
+                                                <?php if ($cek_acc < 1) { ?>
+                                                <button type="submit" class="btn btn-primary pull-right"
+                                                    name="update_acc" value="save">Simpan <i
+                                                        class="fa fa-save"></i></button>
+                                                <?php } ?>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
-                                <!-- Modal MATCHING DYEING-->
-                                <div class="modal fade" id="matching_dyeing<?= $row_matching_dye['id'] ?>" role="dialog" aria-labelledby="cekresep" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" name="form1">
-                                                <div class="modal-header">
-                                                    <h3 class="modal-title" id="exampleModalLabel">MATCHING DYEING</h3>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <?php
-                                                $q_history_matching     = mysqli_query($con, "SELECT * FROM tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC LIMIT 1");
-                                                $row_history_matching   = mysqli_fetch_assoc($q_history_matching);
+                            </div>
+                            <!-- Modal MATCHING DYEING-->
+                            <div class="modal fade" id="matching_dyeing<?= $row_matching_dye['id'] ?>" role="dialog"
+                                aria-labelledby="cekresep" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <form class="form-horizontal" action="" method="post"
+                                            enctype="multipart/form-data" name="form1">
+                                            <div class="modal-header">
+                                                <h3 class="modal-title" id="exampleModalLabel">MATCHING DYEING</h3>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <?php
+                                                $q_history_matching     = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC");
+                                                $row_history_matching   = sqlsrv_fetch_array($q_history_matching);
                                                 ?>
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="form-group">
-                                                                <input type="hidden" value="<?= $row_matching_dye['id'] ?>" name="id_matching">
-                                                                <label class="col-sm-4 control-label">Pemberi Resep</label>
-                                                                <div class="col-sm-8">
-                                                                    <select class="form-control select2" style="width: 100%" name="pemberi_resep">
-                                                                        <option selected disabled value="-">Dipilih</option>
-                                                                        <?php
-                                                                        $q_staff = mysqli_query($con, "SELECT * FROM tbl_staff ");
-                                                                        ?>
-                                                                        <?php while ($row_staff     = mysqli_fetch_array($q_staff)) { ?>
-                                                                            <option value="<?= $row_staff['nama']; ?>" <?php if ($row_staff['nama'] == $row_history_matching['pemberi_resep']) {
-                                                                                                                            echo "SELECTED";
-                                                                                                                        } ?>><?= $row_staff['nama']; ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <br>
-                                                            <br>
-                                                            <!-- <div class="form-group">
-                                                                <input type="hidden" value="<?= $row_matching_dye['id'] ?>" name="id">
-                                                                <label class="col-sm-4 control-label">Acc Resep</label>
-                                                                <div class="col-sm-8">
-                                                                    <select class="form-control select2" style="width: 100%" name="acc_resep">
-                                                                        <option selected disabled value="-">Dipilih</option>
-                                                                        <?php
-                                                                        $q_staff = mysqli_query($con, "SELECT * FROM tbl_staff ");
-                                                                        ?>
-                                                                        <?php while ($row_staff     = mysqli_fetch_array($q_staff)) { ?>
-                                                                            <option value="<?= $row_staff['nama']; ?>" <?php if ($row_staff['nama'] == $row_matching_dye['acc_resep']) {
-                                                                                                                            echo "SELECTED";
-                                                                                                                        } ?>><?= $row_staff['nama']; ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
-                                                            </div>
-                                                            <br>
-                                                            <br> -->
-                                                            <div class="form-group">
-                                                                <label class="col-sm-4 control-label">Percobaan sebelumnya </label>
-                                                                <div class="col-sm-8">
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <input type="hidden" value="<?= $row_matching_dye['id'] ?>"
+                                                                name="id_matching">
+                                                            <label class="col-sm-4 control-label">Pemberi Resep</label>
+                                                            <div class="col-sm-8">
+                                                                <select class="form-control select2" style="width: 100%"
+                                                                    name="pemberi_resep">
+                                                                    <option selected disabled value="-">Dipilih</option>
                                                                     <?php
+                                                                        $q_staff = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_staff ");
+                                                                        ?>
+                                                                    <?php while ($row_staff     = sqlsrv_fetch_array($q_staff)) { ?>
+                                                                    <option value="<?= $row_staff['nama']; ?>"
+                                                                        <?php if ($row_staff['nama'] == $row_history_matching['pemberi_resep']) {
+                                                                                                                            echo "SELECTED";
+                                                                                                                        } ?>><?= $row_staff['nama']; ?>
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <br>
+                                                        <br>
+                                                        <div class="form-group">
+                                                            <label class="col-sm-4 control-label">Percobaan sebelumnya
+                                                            </label>
+                                                            <div class="col-sm-8">
+                                                                <?php
                                                                     $ke   = $row_history_matching['ok_ke'];
                                                                     if ($ke) {
                                                                         $where_ke   = $row_history_matching['ok_ke'];
@@ -274,153 +299,186 @@ $tgl2    = $_POST['tgl2'];
                                                                         $where_ke   = '0';
                                                                     }
                                                                     ?>
-                                                                    <input class="form-control" type="text" value="<?= $where_ke; ?>" disabled readonly>
-                                                                </div>
+                                                                <input class="form-control" type="text"
+                                                                    value="<?= $where_ke; ?>" disabled readonly>
                                                             </div>
-                                                            <br>
-                                                            <br>
-                                                            <div class="form-group">
-                                                                <label for="nokk" class="col-sm-4 control-label">Percobaan selanjutnya ke</label>
-                                                                <div class="col-sm-8">
-                                                                    <select name="ok_ke" class="form-control select2" style="width: 100%">
-                                                                        <?php
-                                                                        $q_percobaanke  = mysqli_query($con, "SELECT * FROM tbl_percobaanke WHERE ke > $where_ke");
+                                                        </div>
+                                                        <br>
+                                                        <br>
+                                                        <div class="form-group">
+                                                            <label for="nokk" class="col-sm-4 control-label">Percobaan
+                                                                selanjutnya ke</label>
+                                                            <div class="col-sm-8">
+                                                                <select name="ok_ke" class="form-control select2"
+                                                                    style="width: 100%">
+                                                                    <?php
+                                                                        $q_percobaanke  = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_percobaanke WHERE ke > $where_ke");
                                                                         ?>
-                                                                        <?php while ($row_percobaanke     = mysqli_fetch_array($q_percobaanke)) { ?>
-                                                                            <option value="<?= $row_percobaanke['ke']; ?>" <?php if ($_POST['ok_ke'] == $row_percobaanke['ke']) {
+                                                                    <?php while ($row_percobaanke     = sqlsrv_fetch_array($q_percobaanke)) { ?>
+                                                                    <option value="<?= $row_percobaanke['ke']; ?>"
+                                                                        <?php if ($_POST['ok_ke'] == $row_percobaanke['ke']) {
                                                                                                                                 echo "SELECTED";
-                                                                                                                            } ?>><?= $row_percobaanke['ke']; ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
+                                                                                                                            } ?>><?= $row_percobaanke['ke']; ?>
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
                                                             </div>
-                                                            <br>
-                                                            <br>
-                                                            <div class="form-group">
-                                                                <input type="hidden" value="<?= $row_history_matching['id'] ?>" name="id">
-                                                                <label class="col-sm-4 control-label">Operator Matcher</label>
-                                                                <div class="col-sm-8">
-                                                                    <select class="form-control select2" style="width: 100%" name="operator_matcher">
-                                                                        <option selected disabled value="-">Dipilih</option>
-                                                                        <?php
-                                                                        $q_staff = mysqli_query($con, "SELECT * FROM tbl_staff ");
+                                                        </div>
+                                                        <br>
+                                                        <br>
+                                                        <div class="form-group">
+                                                            <input type="hidden"
+                                                                value="<?= $row_history_matching['id'] ?>" name="id">
+                                                            <label class="col-sm-4 control-label">Operator
+                                                                Matcher</label>
+                                                            <div class="col-sm-8">
+                                                                <select class="form-control select2" style="width: 100%"
+                                                                    name="operator_matcher">
+                                                                    <option selected disabled value="-">Dipilih</option>
+                                                                    <?php
+                                                                        $q_staff = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_staff ");
                                                                         ?>
-                                                                        <?php while ($row_staff     = mysqli_fetch_array($q_staff)) { ?>
-                                                                            <option value="<?= $row_staff['nama']; ?>" <?php if ($row_staff['nama'] == $row_history_matching['operator_matcher']) {
+                                                                    <?php while ($row_staff     = sqlsrv_fetch_array($q_staff)) { ?>
+                                                                    <option value="<?= $row_staff['nama']; ?>"
+                                                                        <?php if ($row_staff['nama'] == $row_history_matching['operator_matcher']) {
                                                                                                                             echo "SELECTED";
-                                                                                                                        } ?>><?= $row_staff['nama']; ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
+                                                                                                                        } ?>><?= $row_staff['nama']; ?>
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
                                                             </div>
-                                                            <br>
-                                                            <br>
-                                                            <div class="form-group">
-                                                                <label for="nokk" class="col-sm-4 control-label">Note</label>
-                                                                <div class="col-sm-8">
-                                                                    <textarea class="form-control" name="note"><?= $row_history_matching['note']; ?></textarea>
-                                                                </div>
+                                                        </div>
+                                                        <br>
+                                                        <br>
+                                                        <div class="form-group">
+                                                            <label for="nokk"
+                                                                class="col-sm-4 control-label">Note</label>
+                                                            <div class="col-sm-8">
+                                                                <textarea class="form-control"
+                                                                    name="note"><?= $row_history_matching['note']; ?></textarea>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                    <button type="submit" class="btn btn-primary pull-right" name="save" value="save">Simpan <i class="fa fa-save"></i></button>
-                                                </div>
-                                            </form>
-                                        </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary pull-right" name="save"
+                                                    value="save">Simpan <i class="fa fa-save"></i></button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
-                                <!-- Modal TAHAPAN MATCHING -->
-                                <div class="modal fade" id="tahapan_matching<?= $row_matching_dye['id'] ?>" role="dialog" aria-labelledby="tahapan" aria-hidden="true">
-                                    <div class="modal-dialog" role="document">
-                                        <div class="modal-content">
-                                            <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" name="form1">
-                                                <div class="modal-header">
-                                                    <h3 class="modal-title" id="exampleModalLabel">TAHAPAN MATCHING</h3>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <?php
-                                                $q_history_matching     = mysqli_query($con, "SELECT * FROM tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC LIMIT 1");
-                                                $row_history_matching   = mysqli_fetch_assoc($q_history_matching);
-                                                $q_tahapan_history_matching     = mysqli_query($con, "SELECT * FROM tbl_tahapan_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC LIMIT 1");
-                                                $datalengthtahapan  = mysqli_num_rows($q_tahapan_history_matching);
-                                                $datatahapan  = mysqli_fetch_assoc($q_tahapan_history_matching);
+                            </div>
+                            <!-- Modal TAHAPAN MATCHING -->
+                            <div class="modal fade" id="tahapan_matching<?= $row_matching_dye['id'] ?>" role="dialog"
+                                aria-labelledby="tahapan" aria-hidden="true">
+                                <div class="modal-dialog" role="document">
+                                    <div class="modal-content">
+                                        <form class="form-horizontal" action="" method="post"
+                                            enctype="multipart/form-data" name="form1">
+                                            <div class="modal-header">
+                                                <h3 class="modal-title" id="exampleModalLabel">TAHAPAN MATCHING</h3>
+                                                <button type="button" class="close" data-dismiss="modal"
+                                                    aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <?php
+                                                $q_history_matching     = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC");
+                                                $row_history_matching   = sqlsrv_fetch_array($q_history_matching);
+                                                $q_tahapan_history_matching     = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_tahapan_matching_history WHERE id_matching = '$row_matching_dye[id]' ORDER BY id DESC", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+                                                $datalengthtahapan  = sqlsrv_num_rows($q_tahapan_history_matching);
+                                                $datatahapan  = sqlsrv_fetch_array($q_tahapan_history_matching);
 
                                                 ?>
-                                                <div class="modal-body">
-                                                    <div class="row">
-                                                        <div class="col-md-12">
-                                                            <div class="form-group">
-                                                                <input type="hidden" value="<?= $row_matching_dye['id'] ?>" name="id_matching">
-                                                                <label class="col-sm-4 control-label">Operator Matcher</label>
-                                                                <div class="col-sm-8">
-                                                                    <select class="form-control select2" style="width: 100%" name="operator_matcher">
-                                                                        <option selected disabled value="-">Dipilih</option>
-                                                                        <?php
-                                                                        $q_staff = mysqli_query($con, "SELECT * FROM tbl_staff ");
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <div class="form-group">
+                                                            <input type="hidden" value="<?= $row_matching_dye['id'] ?>"
+                                                                name="id_matching">
+                                                            <label class="col-sm-4 control-label">Operator
+                                                                Matcher</label>
+                                                            <div class="col-sm-8">
+                                                                <select class="form-control select2" style="width: 100%"
+                                                                    name="operator_matcher">
+                                                                    <option selected disabled value="-">Dipilih</option>
+                                                                    <?php
+                                                                        $q_staff = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_staff ");
                                                                         ?>
-                                                                        <?php while ($row_staff     = mysqli_fetch_array($q_staff)) { ?>
-                                                                            <option value="<?= $row_staff['nama']; ?>" <?php if ($row_staff['nama'] == $row_history_matching['operator_matcher']) {
+                                                                    <?php while ($row_staff     = sqlsrv_fetch_array($q_staff)) { ?>
+                                                                    <option value="<?= $row_staff['nama']; ?>"
+                                                                        <?php if ($row_staff['nama'] == $row_history_matching['operator_matcher']) {
                                                                                                                             echo "SELECTED";
-                                                                                                                        } ?>><?= $row_staff['nama']; ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
+                                                                                                                        } ?>><?= $row_staff['nama']; ?>
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
 
-                                                                </div>
                                                             </div>
-                                                            <br>
-                                                            <br>
-                                                            <div class="form-group">
-                                                                <label class="col-sm-4 control-label">Tahapan</label>
-                                                                <div class="col-sm-8">
-                                                                    <select class="form-control select2" style="width: 100%" name="tahapan">
-                                                                        <option selected disabled value="-">-- Pilih Tahapan --</option>
-                                                                        <?php
-                                                                        $q_tahapan = mysqli_query($con, "SELECT * FROM tbl_tahapan_matching");
-                                                                        while ($row_tahapan = mysqli_fetch_array($q_tahapan)) {
+                                                        </div>
+                                                        <br>
+                                                        <br>
+                                                        <div class="form-group">
+                                                            <label class="col-sm-4 control-label">Tahapan</label>
+                                                            <div class="col-sm-8">
+                                                                <select class="form-control select2" style="width: 100%"
+                                                                    name="tahapan">
+                                                                    <option selected disabled value="-">-- Pilih Tahapan
+                                                                        --</option>
+                                                                    <?php
+                                                                        $q_tahapan = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_tahapan_matching");
+                                                                        while ($row_tahapan = sqlsrv_fetch_array($q_tahapan)) {
                                                                         ?>
-                                                                            <option value="<?= $row_tahapan['id'] . '|' . $row_tahapan['name']; ?>">
-                                                                                <?= $row_tahapan['name']; ?>
-                                                                            </option>
-                                                                        <?php } ?>
-                                                                    </select>
+                                                                    <option
+                                                                        value="<?= $row_tahapan['id'] . '|' . $row_tahapan['name']; ?>">
+                                                                        <?= $row_tahapan['name']; ?>
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
 
-                                                                </div>
                                                             </div>
-                                                            <br>
-                                                            <br>
-                                                            <div class="form-group">
-                                                                <label for="nokk" class="col-sm-4 control-label">Percobaan Resep Ke</label>
-                                                                <div class="col-sm-8">
-                                                                    <select name="percobaan_ke" class="form-control select2" style="width: 100%">
-                                                                        <?php
-                                                                        $q_percobaan = mysqli_query($con, "SELECT * FROM tbl_percobaanke WHERE ke >= $where_ke ORDER BY id ASC");
-                                                                        $q_percobaanke  = mysqli_query($con, "SELECT * FROM tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' order by 'ok_ke' DESC limit 1");
-                                                                        $percobaan_terakhir = mysqli_fetch_assoc($q_percobaanke);
+                                                        </div>
+                                                        <br>
+                                                        <br>
+                                                        <!-- Tahapan ke berapa sesuai dengan percobaan yang sedang berlangsung -->
+                                                        <div class="form-group">
+                                                            <label for="nokk" class="col-sm-4 control-label">Percobaan
+                                                                Resep Ke</label>
+                                                            <div class="col-sm-8">
+                                                                <select name="percobaan_ke" class="form-control select2"
+                                                                    style="width: 100%">
+                                                                    <?php
+                                                                        $q_percobaan = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_percobaanke WHERE ke >= $where_ke ORDER BY id ASC");
+                                                                        $q_percobaanke  = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_matching_history WHERE id_matching = '$row_matching_dye[id]' order by 'ok_ke' DESC");
+                                                                        $percobaan_terakhir = sqlsrv_fetch_array($q_percobaanke);
                                                                         ?>
-                                                                        <?php while ($row_percobaan     = mysqli_fetch_array($q_percobaan)) { ?>
-                                                                            <option value="<?= $row_percobaan['ke']; ?>" <?php if ($row_percobaan['ke'] == $row_history_matching['operator_matcher']) {
+                                                                    <?php while ($row_percobaan     = sqlsrv_fetch_array($q_percobaan)) { ?>
+                                                                    <option value="<?= $row_percobaan['ke']; ?>"
+                                                                        <?php if ($row_percobaan['ke'] == $row_history_matching['operator_matcher']) {
                                                                                                                                 echo "SELECTED";
-                                                                                                                            } ?>><?= $row_percobaan['ke']; ?></option>
-                                                                        <?php } ?>
-                                                                    </select>
-                                                                </div>
+                                                                                                                            } ?>><?= $row_percobaan['ke']; ?>
+                                                                    </option>
+                                                                    <?php } ?>
+                                                                </select>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                    <button type="submit" class="btn btn-primary pull-right" name="simpan_tahapan" value="simpan_tahapan">Simpan <i class="fa fa-save"></i></button>
-                                                </div>
-                                            </form>
-                                        </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-primary pull-right"
+                                                    name="simpan_tahapan" value="simpan_tahapan">Simpan <i
+                                                        class="fa fa-save"></i></button>
+                                            </div>
+                                        </form>
                                     </div>
                                 </div>
+                            </div>
                             <?php } ?>
                         </tbody>
                         <tfoot class="bg-red">
@@ -430,28 +488,33 @@ $tgl2    = $_POST['tgl2'];
             </div>
         </div>
     </div>
+
 </body>
 
 </html>
+
 <!-- SAVE TAHAPAN -->
 <?php
+
+include_once '../koneksi.php';
+
 if (isset($_POST['simpan_tahapan'])) {
     // Mendapatkan nilai tahapan dari formulir
     $tahapan_value = $_POST['tahapan'];
 
+
     // Memisahkan ID dan nama tahapan
     list($tahapan_id, $tahapan_name) = explode('|', $tahapan_value);
 
+    $tahapan_id_int = intval($tahapan_id);
+    $id_matching_int = intval($_POST['id_matching']);
 
-    $queryinserthistory     = "INSERT INTO tbl_tahapan_matching_history SET
-                                            id_matching = '$_POST[id_matching]',
-                                            operator_matcher = '$_POST[operator_matcher]',
-                                            tahapan = ' $tahapan_name',
-                                            id_tahapan = '$tahapan_id',
-                                            percobaan_ke = '$_POST[percobaan_ke]',
-                                            created_at = now()";
+    $queryinserthistory = "INSERT INTO db_dying.tbl_tahapan_matching_history 
+                        (id_matching, operator_matcher, tahapan, id_tahapan, percobaan_ke, created_at)
+                      VALUES 
+                        ($id_matching_int, '$_POST[operator_matcher]', '$tahapan_name', $tahapan_id_int, '$_POST[percobaan_ke]', GETDATE())";
 
-    $q_simpan   = mysqli_query($con, $queryinserthistory);
+    $q_simpan   = sqlsrv_query($con, $queryinserthistory);
     if ($q_simpan) {
         echo "<script>swal({
                     title: 'Percobaan Berhasil di simpan',   
@@ -482,10 +545,10 @@ if (isset($_POST['update_acc'])) {
     $id_matching = $_POST['id_matching'];
     $percobaan_ke = $_POST['percobaan_ke'];
 
-    $queryupdateacc_resep = "UPDATE tbl_matching_history SET `acc_resep` = '$acc_resep', acc_creationdatetime = now() WHERE id_matching = '$id_matching' AND ok_ke = '$percobaan_ke'";
+    $queryupdateacc_resep = "UPDATE db_dying.tbl_matching_history SET acc_resep = '$acc_resep', acc_creationdatetime = GETDATE() WHERE id_matching = '$id_matching' AND ok_ke = '$percobaan_ke'";
 
 
-    $q_update  = mysqli_query($con, $queryupdateacc_resep);
+    $q_update  = sqlsrv_query($con, $queryupdateacc_resep);
     if ($q_update) {
         echo "<script>swal({
                     title: 'Berhasil Acc',   
@@ -511,15 +574,20 @@ if (isset($_POST['update_acc'])) {
 ?>
 <?php
 if (isset($_POST['save'])) {
-    $queryinserthistory     = "INSERT INTO tbl_matching_history SET
-                                            id_matching = '$_POST[id_matching]',
-                                            pemberi_resep = '$_POST[pemberi_resep]',
-                                            acc_resep = '$_POST[acc_resep]',
-                                            ok_ke = '$_POST[ok_ke]',
-                                            operator_matcher = '$_POST[operator_matcher]',
-                                            note = '$_POST[note]',
-                                            creationdatetime = now()";
-    $q_simpan   = mysqli_query($con, $queryinserthistory);
+
+    $ok_ke_int = intval($_POST['ok_ke']);
+    $id_matching_intt = intval($_POST['id_matching']);
+
+    $queryinserthistory = "INSERT INTO db_dying.tbl_matching_history 
+                        (id_matching, pemberi_resep, acc_resep, ok_ke, 
+                        operator_matcher, note, creationdatetime)
+                    VALUES 
+                        ( $id_matching_intt, '$_POST[pemberi_resep]', 
+                        '$_POST[acc_resep]', $ok_ke_int, '$_POST[operator_matcher]',
+                        '$_POST[note]', GETDATE())";
+
+    $q_simpan   = sqlsrv_query($con, $queryinserthistory);
+
     if ($q_simpan) {
         echo "<script>swal({
                     title: 'Percobaan Berhasil di simpan',   

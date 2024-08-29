@@ -4,31 +4,31 @@ include "koneksi.php";
 //db_connect($db_name);
 $nokk = $_GET['nokk'];
 if ($nokk) {
-	$sqlCek = mysqli_query($con, "SELECT * FROM tbl_schedule WHERE nokk='$nokk' ORDER BY id DESC LIMIT 1");
-	$cek = mysqli_num_rows($sqlCek);
-	$rcek = mysqli_fetch_array($sqlCek);
+	$sqlCek = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_schedule WHERE nokk='$nokk' ORDER BY id DESC", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+	$cek = sqlsrv_num_rows($sqlCek);
+	$rcek = sqlsrv_fetch_array($sqlCek);
 }
 $splitresep = explode('-', $rcek['no_resep']);
 $prdorder = $splitresep[0];
 $grpline = $splitresep[1];
-$sqlCekWaktu = mysqli_query($con, "SELECT th.operator_keluar, th.tgl_buat as jam_stop ,now() as jam_start
-	FROM tbl_hasilcelup th 
-	INNER JOIN tbl_montemp tm on th.id_montemp =tm.id
-	INNER JOIN tbl_schedule ts on tm.id_schedule =ts.id
+$sqlCekWaktu = sqlsrv_query($con, "SELECT TOP 1 th.operator_keluar, th.tgl_buat as jam_stop , GETDATE() as jam_start
+	FROM db_dying.tbl_hasilcelup th 
+	INNER JOIN db_dying.tbl_montemp tm on th.id_montemp =tm.id
+	INNER JOIN db_dying.tbl_schedule ts on tm.id_schedule =ts.id
 	WHERE ts.no_mesin ='" . $rcek['no_mesin'] . "'
-	ORDER BY th.id DESC LIMIT 1");
-$rcekW = mysqli_fetch_array($sqlCekWaktu);
+	ORDER BY th.id DESC");
+$rcekW = sqlsrv_fetch_array($sqlCekWaktu);
 $awalP  = strtotime($rcekW['jam_stop']);
 $akhirP = strtotime($rcekW['jam_start']);
 $diffP  = ($akhirP - $awalP);
 $tjamP  = round($diffP / (60 * 60), 2);
 
-$sqlCekMc = mysqli_query($con, "SELECT no_mesin, kode, waktu_tunggu,wt_des, ket FROM db_dying.tbl_mesin WHERE no_mesin='" . $rcek['no_mesin'] . "'");
-$rCekMc = mysqli_fetch_array($sqlCekMc);
-$sqlCek1 = mysqli_query($con, "SELECT * FROM tbl_montemp WHERE nokk='$nokk' and (status='antri mesin' or status='sedang jalan') ORDER BY id DESC LIMIT 1");
-$cek1 = mysqli_num_rows($sqlCek1);
-$rcek1 = mysqli_fetch_array($sqlCek1);
-$sqlcek2 = mysqli_query($con, "SELECT
+$sqlCekMc = sqlsrv_query($con, "SELECT no_mesin, kode, waktu_tunggu,wt_des, ket FROM db_dying.tbl_mesin WHERE no_mesin='" . $rcek['no_mesin'] . "'");
+$rCekMc = sqlsrv_fetch_array($sqlCekMc);
+$sqlCek1 = sqlsrv_query($con, "SELECT * FROM tbl_montemp WHERE nokk='$nokk' and (status='antri mesin' or status='sedang jalan') ORDER BY id DESC LIMIT 1");
+$cek1 = sqlsrv_num_rows($sqlCek1);
+$rcek1 = sqlsrv_fetch_array($sqlCek1);
+$sqlcek2 = sqlsrv_query($con, "SELECT
 										id,
 										if(COUNT(lot)>1,'Gabung Kartu','') as ket_kartu,
 										if(COUNT(lot)>1,CONCAT('(',COUNT(lot),'kk',')'),'') as kk,
@@ -46,8 +46,8 @@ $sqlcek2 = mysqli_query($con, "SELECT
 										no_urut 
 									ORDER BY
 										id ASC");
-$cek2 = mysqli_num_rows($sqlcek2);
-$rcek2 = mysqli_fetch_array($sqlcek2);
+$cek2 = sqlsrv_num_rows($sqlcek2);
+$rcek2 = sqlsrv_fetch_array($sqlcek2);
 if ($rcek2['ket_kartu'] != "") {
 	$ketsts = $rcek2['ket_kartu'] . "\n(" . $rcek2['g_kk'] . ")";
 } else {
@@ -585,8 +585,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="kapasitas" class="form-control">
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT kapasitas FROM tbl_mesin GROUP BY kapasitas ORDER BY kapasitas DESC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT kapasitas FROM tbl_mesin GROUP BY kapasitas ORDER BY kapasitas DESC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['kapasitas']; ?>" <?php if ($rcek['kapasitas'] == $rK['kapasitas']) {
 																					echo "SELECTED";
@@ -614,8 +614,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="no_mc" class="form-control">
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT no_mesin FROM tbl_mesin WHERE kapasitas='$rcek[kapasitas]' ORDER BY no_mesin ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT no_mesin FROM tbl_mesin WHERE kapasitas='$rcek[kapasitas]' ORDER BY no_mesin ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['no_mesin']; ?>" <?php if ($rcek['no_mesin'] == $rK['no_mesin']) {
 																					echo "SELECTED";
@@ -672,9 +672,9 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 									<?php
 									$dtArr = $rcek1['analisa'];
 									$data = explode(",", $dtArr);
-									$qCek1 = mysqli_query($con, "SELECT analisa FROM tbl_analisa_mesin_tunggu ORDER BY analisa ASC");
+									$qCek1 = sqlsrv_query($con, "SELECT analisa FROM tbl_analisa_mesin_tunggu ORDER BY analisa ASC");
 									$i = 0;
-									while ($dCek1 = mysqli_fetch_array($qCek1)) { ?>
+									while ($dCek1 = sqlsrv_fetch_array($qCek1)) { ?>
 										<option value="<?php echo $dCek1['analisa']; ?>" <?php if ($dCek1['analisa'] == $data[0] or $dCek1['analisa'] == $data[1] or $dCek1['analisa'] == $data[2] or $dCek1['analisa'] == $data[3] or $dCek1['analisa'] == $data[4] or $dCek1['analisa'] == $data[5]) {
 																								echo "SELECTED";
 																							} ?>><?php echo $dCek1['analisa']; ?></option>
@@ -784,8 +784,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="operator" class="form-control" required>
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT nama FROM tbl_staff WHERE jabatan='Operator' ORDER BY nama ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT nama FROM tbl_staff WHERE jabatan='Operator' ORDER BY nama ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['nama']; ?>"><?php echo $rK['nama']; ?></option>
 							<?php } ?>
@@ -807,8 +807,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="colorist" class="form-control" required>
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT nama FROM tbl_staff WHERE jabatan='Colorist' or jabatan='SPV' ORDER BY nama ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT nama FROM tbl_staff WHERE jabatan='Colorist' or jabatan='SPV' ORDER BY nama ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['nama']; ?>"><?php echo $rK['nama']; ?></option>
 							<?php } ?>
@@ -819,8 +819,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="kasih_resep" class="form-control">
 							<option value="">Pilih</option>
 							<?php
-							$q_kasihresep = mysqli_query($con, "SELECT * FROM tbl_nama_colorist ORDER BY id ASC");
-							while ($row_kasihresep = mysqli_fetch_array($q_kasihresep)) {
+							$q_kasihresep = sqlsrv_query($con, "SELECT * FROM tbl_nama_colorist ORDER BY id ASC");
+							while ($row_kasihresep = sqlsrv_fetch_array($q_kasihresep)) {
 							?>
 								<option value="<?= $row_kasihresep['nama_colorist']; ?>"><?= $row_kasihresep['nama_colorist']; ?></option>
 							<?php } ?>
@@ -833,8 +833,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="leader" class="form-control" required>
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT nama FROM tbl_staff WHERE jabatan='Leader' ORDER BY nama ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT nama FROM tbl_staff WHERE jabatan='Leader' ORDER BY nama ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['nama']; ?>"><?php echo $rK['nama']; ?></option>
 							<?php } ?>
@@ -845,8 +845,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="acc_resep" class="form-control">
 							<option value="">Pilih</option>
 							<?php
-							$q_accresep = mysqli_query($con, "SELECT * FROM tbl_nama_colorist ORDER BY id ASC");
-							while ($row_accresep = mysqli_fetch_array($q_accresep)) {
+							$q_accresep = sqlsrv_query($con, "SELECT * FROM tbl_nama_colorist ORDER BY id ASC");
+							while ($row_accresep = sqlsrv_fetch_array($q_accresep)) {
 							?>
 								<option value="<?= $row_accresep['nama_colorist']; ?>"><?= $row_accresep['nama_colorist']; ?></option>
 							<?php } ?>
@@ -978,8 +978,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="nozzle" class="form-control" required>
 							<option value="">Pilih</option>
 							<?php
-							$sqlNoz = mysqli_query($con, "SELECT nilai,satuan FROM tbl_nozzle ORDER BY nilai ASC");
-							while ($rN = mysqli_fetch_array($sqlNoz)) {
+							$sqlNoz = sqlsrv_query($con, "SELECT nilai,satuan FROM tbl_nozzle ORDER BY nilai ASC");
+							while ($rN = sqlsrv_fetch_array($sqlNoz)) {
 							?>
 								<option value="<?php echo $rN['nilai']; ?>"><?php echo $rN['nilai'] . " " . $rN['satuan']; ?></option>
 							<?php } ?>
@@ -1195,7 +1195,7 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 <?php
 if ($_POST['simpan_analisa'] == "Simpan") {
 	$ket = strtoupper($_POST['analisa1']);
-	$sqlData1 = mysqli_query($con, "INSERT INTO tbl_analisa_mesin_tunggu SET 
+	$sqlData1 = sqlsrv_query($con, "INSERT INTO tbl_analisa_mesin_tunggu SET 
 			analisa='$ket'");
 	if ($sqlData1) {
 		echo "<script>swal({
@@ -1234,19 +1234,19 @@ if ($_POST['save'] == "save") {
 		}
 	}
 
-	$sqlCekWaktu1 = mysqli_query($con, "SELECT th.tgl_buat as jam_stop ,now() as jam_start
+	$sqlCekWaktu1 = sqlsrv_query($con, "SELECT th.tgl_buat as jam_stop ,now() as jam_start
 											FROM tbl_hasilcelup th 
 											INNER JOIN tbl_montemp tm on th.id_montemp =tm.id
 											INNER JOIN tbl_schedule ts on tm.id_schedule =ts.id
 											WHERE ts.no_mesin ='" . $_POST['no_mc'] . "'
 											ORDER BY th.id DESC LIMIT 1");
-	$rcekW1 = mysqli_fetch_array($sqlCekWaktu1);
+	$rcekW1 = sqlsrv_fetch_array($sqlCekWaktu1);
 	$awalP1  = strtotime($rcekW1['jam_stop']);
 	$akhirP1 = strtotime($rcekW1['jam_start']);
 	$diffP1  = ($akhirP1 - $awalP1);
 	$tjamP1  = round($diffP1 / (60 * 60), 2);
 
-	$sqlData = mysqli_query($con, "INSERT INTO tbl_montemp SET
+	$sqlData = sqlsrv_query($con, "INSERT INTO tbl_montemp SET
 										id_schedule='" . $_POST['id'] . "',
 										nodemand='$_POST[demand]',
 										nokk='" . $_POST['nokk'] . "',
@@ -1301,7 +1301,7 @@ if ($_POST['save'] == "save") {
 										tgl_update=now()");
 
 	if ($sqlData) {
-		$sqlD = mysqli_query($con, "UPDATE tbl_schedule SET 
+		$sqlD = sqlsrv_query($con, "UPDATE tbl_schedule SET 
 									status='sedang jalan',
 									tgl_update=now()
 									WHERE status='antri mesin' and no_mesin='" . $rcek['no_mesin'] . "' and no_urut='1' ");
@@ -1325,7 +1325,7 @@ if ($_POST['update'] == "update") {
 	$jns = str_replace("'", "''", $_POST['jns_kain']);
 	$po = str_replace("'", "''", $_POST['no_po']);
 	$lot = trim($_POST['lot']);
-	$sqlData = mysqli_query($con, "UPDATE tbl_montemp SET 
+	$sqlData = sqlsrv_query($con, "UPDATE tbl_montemp SET 
 		  operator='" . $_POST['operator'] . "',
 		  nodemand='$_POST[demand]',
 		  colorist='" . $_POST['colorist'] . "',
