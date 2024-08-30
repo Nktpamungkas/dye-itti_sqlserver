@@ -248,7 +248,7 @@ $rowbg = sqlsrv_fetch_array($sqlbg);
         <pre>Tanggal</pre>
       </td>
       <td colspan="2" style="border-left:0px #000000 solid;">: <?php if ($rowmt2['tgl_buat'] != "") {
-                                                                  echo $rowmt2['tgl_buat']->format('Y-m-d');
+                                                                  echo $rowmt2['tgl_buat']->format('d-m-Y');
                                                                 } ?></td>
     </tr>
     <tr>
