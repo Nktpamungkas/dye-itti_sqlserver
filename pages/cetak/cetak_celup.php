@@ -8,15 +8,33 @@ include "../../tgl_indo.php";
 $idkk=$_REQUEST['idkk'];
 $act=$_GET['g'];
 //-
-$data=mysqli_query($con,"SELECT DATE_FORMAT(now(),'%Y-%m-%d') as tgs, a.*,b.k_resep,b.acc_keluar,
-   b.operator_keluar,b.shift as shift_keluar,d.rol as rolm,d.bruto as brutom,
-   b.g_shift as g_shift_keluar,c.comment_warna,c.acc,c.ket,c.id as idb from tbl_schedule a
-     INNER JOIN tbl_montemp d ON a.id=d.id_schedule
-	 INNER JOIN tbl_hasilcelup b ON d.id=b.id_montemp
-	 INNER JOIN tbl_potongcelup c ON b.id=c.id_hasilcelup
-	 WHERE c.id='$_GET[id]'
-	 ORDER BY a.no_mesin ASC");
-$r=mysqli_fetch_array($data);
+$data=sqlsrv_query($con,"SELECT
+	CAST(GETDATE() AS DATE) as tgs,
+	a.*,
+	b.k_resep,
+	b.acc_keluar,
+	b.operator_keluar,
+	b.shift as shift_keluar,
+	d.rol as rolm,
+	d.bruto as brutom,
+	b.g_shift as g_shift_keluar,
+	c.comment_warna,
+	c.acc,
+	c.ket,
+	c.id as idb
+from
+	db_dying.tbl_schedule a
+INNER JOIN db_dying.tbl_montemp d ON
+	a.id = d.id_schedule
+INNER JOIN db_dying.tbl_hasilcelup b ON
+	d.id = b.id_montemp
+INNER JOIN db_dying.tbl_potongcelup c ON
+	b.id = c.id_hasilcelup
+WHERE
+	c.id='$_GET[id]'
+ORDER BY
+	a.no_mesin ASC");
+$r=sqlsrv_fetch_array($data);
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
