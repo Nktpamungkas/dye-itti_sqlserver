@@ -6,10 +6,11 @@ include "../../tgl_indo.php";
 $idkk=$_REQUEST['idkk'];
 $act=$_GET['g'];
 //-
-$Awal=$_GET['Awal'];
-$Akhir=$_GET['Akhir'];
-$qTgl=mysqli_query($con,"SELECT DATE_FORMAT(now(),'%Y-%m-%d') as tgl_skrg,DATE_FORMAT(now(),'%H:%i:%s') as jam_skrg");
-$rTgl=mysqli_fetch_array($qTgl);
+$qTgl=sqlsrv_query($con,"SELECT 
+    FORMAT(GETDATE(), 'yyyy-MM-dd') AS tgl_skrg,
+    FORMAT(GETDATE(), 'HH:mm:ss') AS jam_skrg
+");
+$rTgl=sqlsrv_fetch_array($qTgl);
 if($Awal!=""){$tgl=substr($Awal,0,10); $jam=$Awal;}else{$tgl=$rTgl['tgl_skrg']; $jam=$rTgl['jam_skrg'];}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -143,60 +144,91 @@ border:hidden;
       <td width="6%"><div align="center">Kg</div></td>
     </tr>
 		  </thead>
-	<?php
-	function tampil($mc,$no,$awal,$akhir){
-    include "../../koneksi.php";		
-		if($awal!=""){$where=" AND DATE_FORMAT( tgl_update, '%Y-%m-%d %H:%i:%s' ) BETWEEN '$awal' AND '$akhir' ";}
-		else{$where=" ";}
-		$qCek=mysqli_query($con,"SELECT
-   	id,
-	GROUP_CONCAT( lot SEPARATOR '/' ) AS lot,
-	if(COUNT(lot)>1,'Gabung Kartu','') as ket_kartu,
-	no_mesin,
-	no_urut,
-	buyer,
-	langganan,
-	GROUP_CONCAT(DISTINCT no_order SEPARATOR '-' ) AS no_order,
-	no_resep,
-	nokk,
-	jenis_kain,
-	warna,
-	no_warna,
-	sum(rol) as rol,
-	sum(bruto) as bruto,
-	proses,
-	ket_status,
-	tgl_delivery,
-	GROUP_CONCAT(DISTINCT personil SEPARATOR ',' ) AS personil,
-	ket_kain,
-	mc_from
-FROM
-	tbl_schedule 
-WHERE
-	NOT STATUS = 'selesai' and no_urut='$no' and no_mesin='$mc' $where
-GROUP BY
-	no_mesin,
-	no_urut 
-ORDER BY
-	id ASC");
-	  	$row=mysqli_fetch_array($qCek);
-		$dt[]=$row;
-		return $dt;
-					
-	}
+      <?php
+	    function tampil($mc, $no, $awal, $akhir) {
+      include "../../koneksi.php";
+      
+      // Menyusun bagian WHERE untuk SQL Server
+      $where = "";
+      if (!empty($awal) && !empty($akhir)) {
+          $where = " AND tgl_update BETWEEN ? AND ? ";
+      }
+
+      // Query SQL Server
+      $sql = "
+              SELECT
+            id,
+            STRING_AGG(lot, '/') AS lot,
+            CASE WHEN COUNT(lot) > 1 THEN 'Gabung Kartu' ELSE '' END AS ket_kartu,
+            no_mesin,
+            no_urut,
+            buyer,
+            langganan,
+            STRING_AGG(no_order, '-') AS no_order,
+            no_resep,
+            nokk,
+            jenis_kain,
+            warna,
+            no_warna,
+            SUM(rol) AS rol,
+            SUM(bruto) AS bruto,
+            proses,
+            ket_status,
+            tgl_delivery,
+            ket_kain,
+            mc_from,
+            STRING_AGG(personil, ',') AS personil
+        FROM
+            db_dying.tbl_schedule
+        WHERE
+            STATUS != 'selesai' AND no_urut = '$no' AND no_mesin = '$mc' $where
+        GROUP BY
+            id, no_mesin, no_urut, buyer, langganan, no_resep, nokk, jenis_kain, warna, no_warna, proses, ket_status, tgl_delivery, ket_kain, mc_from
+        ORDER BY
+      id ASC;
+
+      ";
+
+      // Menyiapkan statement SQL
+      $params = array($no, $mc);
+      if (!empty($awal) && !empty($akhir)) {
+          $params[] = $awal;
+          $params[] = $akhir;
+      }
+      $stmt = sqlsrv_query($con, $sql, $params);
+
+      // Mengecek error query
+      if ($stmt === false) {
+          die(print_r(sqlsrv_errors(), true));
+      }
+
+      // Mengambil hasil query
+      $dt = array();
+      while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+          $dt[] = $row;
+      }
+
+      return $dt;
+    }
+
    /* $data=mysqli_query("SELECT b.* from tbl_schedule a
-LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GROUP BY a.no_mesin ORDER BY a.kapasitas DESC,a.no_mesin ASC"); */
-	$data=mysqli_query($con,"SELECT b.* from tbl_mesin b ORDER BY b.kapasitas DESC,b.no_mesin ASC LIMIT 35,4");
+    LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GROUP BY a.no_mesin ORDER BY a.kapasitas DESC,a.no_mesin ASC"); */
+	$data=sqlsrv_query($con," SELECT b.* 
+                            FROM db_dying.tbl_mesin b 
+                            ORDER BY b.kapasitas DESC, b.no_mesin ASC 
+                            OFFSET 35 ROWS 
+                            FETCH NEXT 4 ROWS ONLY;
+                            ");
 	$no=1;
 	$n=1;
 	$c=0;
 	 ?>
 	<?php
 	  $col=0;
-  while($rowd=mysqli_fetch_array($data)){
+  while($rowd=sqlsrv_fetch_array($data)){
 			$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
 		 ?>
-    <tr>
+   <tr>
       <td rowspan="7"><a class="hurufvertical"><h2>
         <div align="center"><?php echo $rowd['kapasitas'];?></div>
       </h2></a></td>
@@ -204,8 +236,8 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
 		  </div><div align="center" style="font-size: 12px;">(<?php echo $rowd['kode'];?>)</div>
       </td>	  	
       <td valign="top" style="height: 0.35in;"><div align="center">1</div></td>
-	  <?php foreach(tampil($rowd['no_mesin'],"1",$Awal,$Akhir) as $dd){ ?>	
-      <td align="center" valign="top"><?php echo $dd['buyer']; ?></td>
+	      <?php foreach(tampil($rowd['no_mesin'],"1",$Awal,$Akhir) as $dd)?>	
+      <td align="center" valign="top"><?php echo $dd['langganan']; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
         <?php if(strlen($dd['jenis_kain'])>25){echo substr($dd['jenis_kain'],0,25)."...";}else{echo $dd['jenis_kain'];} ?>
@@ -215,17 +247,18 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       </div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd['lot']; ?></div></td>
-      <td align="center" valign="top"><?php if($dd['tgl_delivery']!="0000-00-00"){echo $dd['tgl_delivery'];} ?></td>
+      <td align="center" valign="top"style="font-size: 8px;"><?php 
+        echo ($dd['tgl_delivery'] != null && $dd['tgl_delivery'] != '') ? $dd['tgl_delivery']->format('Y-m-d') : ''; 
+        ?></td>
       <td align="center" valign="top"><?php if($dd['rol']!="0"){echo $dd['rol'];} ?></td>
       <td align="right" valign="top"><?php if($dd['bruto']!="0"){echo $dd['bruto'];} ?></td>
       <td valign="top"><?php echo $dd['ket_status']; ?><br />
         <?php echo $dd['personil']; ?> <?php echo $dd['ket_kain']; ?>
         <?php if($dd['mc_from']!=""){ echo " Dari MC:".$dd['mc_from'];} ?></td>
-      <?php } ?>	
     </tr>
     <tr>
       <td valign="top" style="height: 0.35in;"><div align="center">2</div></td>
-      <?php foreach(tampil($rowd['no_mesin'],"2",$Awal,$Akhir) as $dd1){ ?>	
+      <?php foreach(tampil($rowd['no_mesin'],"2",$Awal,$Akhir) as $dd1)?>	
       <td align="center" valign="top"><?php echo $dd1['langganan']; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd1['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
@@ -234,17 +267,18 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd1['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd1['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd1['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd1['tgl_delivery']; ?></td>
+      <td align="center" valign="top"style="font-size: 8px;"><?php 
+        echo ($dd1['tgl_delivery'] != null && $dd1['tgl_delivery'] != '') ? $dd1['tgl_delivery']->format('Y-m-d') : ''; 
+        ?></td>
       <td align="center" valign="top"><?php echo $dd1['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd1['bruto']; ?></td>
       <td valign="top"><?php echo $dd1['ket_status']; ?><br />
         <?php echo $dd1['personil']; ?> <?php echo $dd1['ket_kain']; ?>
         <?php if($dd1['mc_from']!=""){ echo " Dari MC:".$dd1['mc_from'];} ?></td>
-      <?php } ?>
     </tr>
     <tr>
       <td valign="top" style="height: 0.35in;"><div align="center">3</div></td>
-      <?php foreach(tampil($rowd['no_mesin'],"3",$Awal,$Akhir) as $dd2){ ?>	
+      <?php foreach(tampil($rowd['no_mesin'],"3",$Awal,$Akhir) as $dd2)?>	
       <td align="center" valign="top"><?php echo $dd2['langganan']; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd2['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
@@ -253,17 +287,18 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd2['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd2['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd2['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd2['tgl_delivery']; ?></td>
+      <td align="center" valign="top"style="font-size: 8px;"><?php 
+        echo ($dd2['tgl_delivery'] != null && $dd2['tgl_delivery'] != '') ? $dd2['tgl_delivery']->format('Y-m-d') : ''; 
+        ?></td>
       <td align="center" valign="top"><?php echo $dd2['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd2['bruto']; ?></td>
       <td valign="top"><?php echo $dd2['ket_status']; ?><br />
         <?php echo $dd2['personil']; ?> <?php echo $dd2['ket_kain']; ?>
         <?php if($dd2['mc_from']!=""){ echo " Dari MC:".$dd2['mc_from'];} ?></td>
-      <?php } ?>
     </tr>
     <tr>
       <td valign="top" style="height: 0.35in;"><div align="center">4</div></td>
-      <?php foreach(tampil($rowd['no_mesin'],"4",$Awal,$Akhir) as $dd3){ ?>	
+      <?php foreach(tampil($rowd['no_mesin'],"4",$Awal,$Akhir) as $dd3)?>	
       <td align="center" valign="top"><?php echo $dd3['langganan']; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd3['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
@@ -272,17 +307,18 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd3['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd3['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd3['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd3['tgl_delivery']; ?></td>
+      <td align="center" valign="top"style="font-size: 8px;"><?php 
+        echo ($dd3['tgl_delivery'] != null && $dd3['tgl_delivery'] != '') ? $dd3['tgl_delivery']->format('Y-m-d') : ''; 
+        ?></td>
       <td align="center" valign="top"><?php echo $dd3['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd3['bruto']; ?></td>
       <td valign="top"><?php echo $dd3['ket_status']; ?><br />
         <?php echo $dd3['personil']; ?> <?php echo $dd3['ket_kain']; ?>
         <?php if($dd3['mc_from']!=""){ echo " Dari MC:".$dd3['mc_from'];} ?></td>
-      <?php } ?>
     </tr>
     <tr>
       <td valign="top" style="height: 0.35in;"><div align="center">5</div></td>
-      <?php foreach(tampil($rowd['no_mesin'],"5",$Awal,$Akhir) as $dd4){ ?>	
+      <?php foreach(tampil($rowd['no_mesin'],"5",$Awal,$Akhir) as $dd4)?>	
       <td align="center" valign="top"><?php echo $dd4['langganan']; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd4['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
@@ -291,17 +327,18 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd4['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd4['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd4['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd4['tgl_delivery']; ?></td>
+      <td align="center" valign="top"style="font-size: 8px;"><?php 
+        echo ($dd4['tgl_delivery'] != null && $dd4['tgl_delivery'] != '') ? $dd4['tgl_delivery']->format('Y-m-d') : ''; 
+        ?></td>
       <td align="center" valign="top"><?php echo $dd4['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd4['bruto']; ?></td>
       <td valign="top"><?php echo $dd4['ket_status']; ?><br />
         <?php echo $dd4['personil']; ?> <?php echo $dd4['ket_kain']; ?>
         <?php if($dd4['mc_from']!=""){ echo " Dari MC:".$dd4['mc_from'];} ?></td>
-      <?php } ?>
     </tr>
     <tr>
       <td valign="top" style="height: 0.35in;"><div align="center">6</div></td>
-      <?php foreach(tampil($rowd['no_mesin'],"6",$Awal,$Akhir) as $dd5){ ?>	
+      <?php foreach(tampil($rowd['no_mesin'],"6",$Awal,$Akhir) as $dd5)?>	
       <td align="center" valign="top"><?php echo $dd5['langganan']; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd5['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
@@ -310,17 +347,18 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd5['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd5['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd5['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd5['tgl_delivery']; ?></td>
+      <td align="center" valign="top"style="font-size: 8px;"><?php 
+        echo ($dd6['tgl_delivery'] != null && $dd6['tgl_delivery'] != '') ? $dd6['tgl_delivery']->format('Y-m-d') : ''; 
+        ?></td>
       <td align="center" valign="top"><?php echo $dd5['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd5['bruto']; ?></td>
       <td valign="top"><?php echo $dd5['ket_status']; ?><br />
         <?php echo $dd5['personil']; ?> <?php echo $dd5['ket_kain']; ?>
         <?php if($dd5['mc_from']!=""){ echo " Dari MC:".$dd5['mc_from'];} ?></td>
-      <?php } ?>
     </tr>
     <tr>
       <td valign="top" style="height: 0.35in;"><div align="center">7</div></td>
-      <?php foreach(tampil($rowd['no_mesin'],"7",$Awal,$Akhir) as $dd6){ ?>	
+      <?php foreach(tampil($rowd['no_mesin'],"7",$Awal,$Akhir) as $dd6)?>	
       <td align="center" valign="top"><?php echo $dd6['langganan']; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd6['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
@@ -329,13 +367,14 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd6['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd6['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd6['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd6['tgl_delivery']; ?></td>
+      <td align="center" valign="top"style="font-size: 8px;"><?php 
+        echo ($dd6['tgl_delivery'] != null && $dd6['tgl_delivery'] != '') ? $dd6['tgl_delivery']->format('Y-m-d') : ''; 
+        ?></td>
       <td align="center" valign="top"><?php echo $dd6['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd6['bruto']; ?></td>
       <td valign="top"><?php echo $dd6['ket_status']; ?><br />
         <?php echo $dd6['personil']; ?> <?php echo $dd6['ket_kain']; ?>
         <?php if($dd6['mc_from']!=""){ echo " Dari MC:".$dd6['mc_from'];} ?></td>
-      <?php } ?>
     </tr>
   <?php
 	$no++;} 

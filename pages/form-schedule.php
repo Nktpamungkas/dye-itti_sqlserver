@@ -45,16 +45,16 @@
 		}
 	}
 
-	function select_resep(){
+	function select_resep() {
 		var cb = document.getElementById("no_mc").value;
-        var _noprodorder = document.getElementById("nokk").value;
-		if(cb == 'CB11'){
-			$.get("api_CB.php?noprod="+_noprodorder,function(item){
-				if(item.CB_BONRESEP1){
+		var _noprodorder = document.getElementById("nokk").value;
+		if (cb == 'CB11') {
+			$.get("api_CB.php?noprod=" + _noprodorder, function(item) {
+				if (item.CB_BONRESEP1) {
 					document.getElementById("no_resep").value = item.CB_BONRESEP1;
 					document.getElementById("suffix").value = item.CB_SUFFIX;
 					document.getElementById("no_resep2").value = item.CB_BONRESEP2;
-				}else{
+				} else {
 					alert("CBL1 TIDAK TERSEDIA DI PRODUCTION RESERVATION. SILAHKAN PERIKSA KEMBALI ATAU TULIS MANUAL BON RESEP.");
 				}
 			});
@@ -304,129 +304,48 @@
 	}
 </script>
 <?php
-	if($_GET['nokk']){
-		ini_set("error_reporting", 1);
-		session_start();
+if ($_GET['nokk']) {
+	//ini_set("error_reporting", 1);
+	session_start();
+	include "koneksi.php";
+	function nourut()
+	{
 		include "koneksi.php";
-		function nourut(){
-			include "koneksi.php";
-			$format = date("ymd");
-			$sql = mysqli_query($con, "SELECT nokk FROM tbl_schedule WHERE substr(nokk,1,6) like '%" . $format . "%' ORDER BY nokk DESC LIMIT 1 ") or die(mysqli_error());
-			$d = mysqli_num_rows($sql);
-			if ($d > 0) {
-				$r = mysqli_fetch_array($sql);
-				$d = $r['nokk'];
-				$str = substr($d, 6, 2);
-				$Urut = (int)$str;
-			} else {
-				$Urut = 0;
-			}
-			$Urut = $Urut + 1;
-			$Nol = "";
-			$nilai = 2 - strlen($Urut);
-			for ($i = 1; $i <= $nilai; $i++) {
-				$Nol = $Nol . "0";
-			}
-			$nipbr = $format . $Nol . $Urut;
-			return $nipbr;
+		$format = date("ymd");
+		$sql = sqlsrv_query($con, "SELECT TOP 1 nokk 
+			FROM db_dying.tbl_schedule 
+			WHERE SUBSTRING(nokk, 1, 6) LIKE '%" . $format . "%' ORDER BY nokk DESC", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+		$d = sqlsrv_num_rows($sql);
+		if ($d > 0) {
+			$r = sqlsrv_fetch_array($sql);
+			$d = $r['nokk'];
+			$str = substr($d, 6, 2);
+			$Urut = (int)$str;
+		} else {
+			$Urut = 0;
 		}
-		$nou = nourut();
-		$nokk = $_GET['nokk'];
-		// $sql = sqlsrv_query($conn, "select top 1
-		// 									x.*,dbo.fn_StockMovementDetails_GetTotalWeightPCC(0, x.PCBID) as Weight, 
-		// 									pm.Weight as Gramasi,pm.CuttableWidth as Lebar, pm.Description as ProductDesc, pm.ColorNo, pm.Color,
-		// 							dbo.fn_StockMovementDetails_GetTotalRollPCC(0, x.PCBID) as RollCount
-		// 								from
-		// 									(
-		// 									select
-		// 										so.SONumber, convert(char(10),so.SODate,103) as TglSO, so.CustomerID, so.BuyerID, so.PODate,
-		// 										sod.ID as SODID, sod.ProductID, sod.Quantity, sod.UnitID, sod.WeightUnitID, 
-		// 										soda.RefNo as DetailRefNo,jo.DocumentNo as NoOrder,soda.PONumber,
-		// 										pcb.ID as PCBID, pcb.Gross as Bruto,soda.HangerNo,pp.ProductCode,
-		// 										pcb.Quantity as BatchQuantity, pcb.UnitID as BatchUnitID, pcb.ScheduledDate, pcb.ProductionScheduledDate,
-		// 										pcblp.DepartmentID,pcb.LotNo,pcb.PCID,pcb.ChildLevel,pcb.RootID,convert(char(10),sod.RequiredDate,121) as RequiredDate
-												
-		// 									from
-		// 										SalesOrders so inner join
-		// 										JobOrders jo on jo.SOID=so.ID inner join
-		// 										SODetails sod on so.ID = sod.SOID inner join
-		// 										SODetailsAdditional soda on sod.ID = soda.SODID left join
-		// 										ProductPartner pp on pp.productid= sod.productid left join
-		// 										ProcessControlJO pcjo on sod.ID = pcjo.SODID left join
-		// 										ProcessControlBatches pcb on pcjo.PCID = pcb.PCID left join
-		// 										ProcessControlBatchesLastPosition pcblp on pcb.ID = pcblp.PCBID left join
-		// 										ProcessFlowProcessNo pfpn on pfpn.EntryType = 2 and pcb.ID = pfpn.ParentID and pfpn.MachineType = 24 left join
-		// 										ProcessFlowDetailsNote pfdn on pfpn.EntryType = pfdn.EntryType and pfpn.ID = pfdn.ParentID
-		// 									where pcb.DocumentNo='$nokk' and pcb.Gross<>'0'
-		// 										group by
-		// 											so.SONumber, so.SODate, so.CustomerID, so.BuyerID, so.PONumber, so.PODate,jo.DocumentNo,
-		// 											sod.ID, sod.ProductID, sod.Quantity, sod.UnitID, sod.Weight, sod.WeightUnitID,
-		// 											soda.RefNo,pcb.DocumentNo,soda.HangerNo,
-		// 											pcb.ID, pcb.DocumentNo, pcb.Gross,soda.PONumber,pp.ProductCode,
-		// 											pcb.Quantity, pcb.UnitID, pcb.ScheduledDate, pcb.ProductionScheduledDate,
-		// 											pcblp.DepartmentID,pcb.LotNo,pcb.PCID,pcb.ChildLevel,pcb.RootID,sod.RequiredDate
-		// 										) x inner join
-		// 										ProductMaster pm on x.ProductID = pm.ID left join
-		// 										Departments dep on x.DepartmentID  = dep.ID left join
-		// 										Departments pdep on dep.RootID = pdep.ID left join				
-		// 										Partners cust on x.CustomerID = cust.ID left join
-		// 										Partners buy on x.BuyerID = buy.ID left join
-		// 										UnitDescription udq on x.UnitID = udq.ID left join
-		// 										UnitDescription udw on x.WeightUnitID = udw.ID left join
-		// 										UnitDescription udb on x.BatchUnitID = udb.ID
-		// 									order by
-		// 										x.SODID, x.PCBID");
-		// $r = sqlsrv_fetch_array($sql);
-		// $sql1 = sqlsrv_query($conn, "select partnername from partners where id='" . $r['CustomerID'] . "'");
-		// $r1 = sqlsrv_fetch_array($sql1);
-		// $sql2 = sqlsrv_query($conn, "select partnername from partners where id='" . $r['BuyerID'] . "'");
-		// $r2 = sqlsrv_fetch_array($sql2);
-		// $pelanggan = $r1['partnername'];
-		// $buyer = $r2['partnername'];
-		// $ko = sqlsrv_query($conn, "select ko.KONo from
-		// 								ProcessControlJO pcjo inner join
-		// 								ProcessControl pc on pcjo.PCID = pc.ID left join
-		// 								KnittingOrders ko on pc.CID = ko.CID and pcjo.KONo = ko.KONo 
-		// 							where
-		// 								pcjo.PCID = '" . $r['PCID'] . "'
-		// 						group by ko.KONo");
-		// $rKO = sqlsrv_fetch_array($ko);
-		
-		$child = $r['ChildLevel'];
-		if ($nokk != "") {
-			// if ($child > 0) {
-			// 	$sqlgetparent = sqlsrv_query($conn, "select ID,LotNo from ProcessControlBatches where ID='" . $r['RootID'] . "' and ChildLevel='0'");
-			// 	$rowgp = sqlsrv_fetch_array($sqlgetparent);
-
-			// 	//$nomLot=substr("$row2[LotNo]",0,1);
-			// 	$nomLot = $rowgp['LotNo'];
-			// 	$nomorLot = "$nomLot/K" . $r['ChildLevel'] . "";
-			// } else {
-			// 	$nomorLot = $r['LotNo'];
-			// }
-
-			// $sqlLot1 = "Select count(*) as TotalLot From ProcessControlBatches where PCID='" . $r['PCID'] . "' and RootID='0' and LotNo < '1000'";
-			// $qryLot1 = sqlsrv_query($conn, $sqlLot1) or die('A error occured : ');
-			// $rowLot = sqlsrv_fetch_array($qryLot1);
-			// $lotno = $rowLot['TotalLot'] . "-" . $nomorLot;
+		$Urut = $Urut + 1;
+		$Nol = "";
+		$nilai = 2 - strlen($Urut);
+		for ($i = 1; $i <= $nilai; $i++) {
+			$Nol = $Nol . "0";
 		}
-		// $sqlCek = mysqli_query($con, "SELECT * FROM tbl_schedule WHERE nokk='$nokk' AND nodemand LIKE '%%' ORDER BY id DESC LIMIT 1");
-		// $cek = mysqli_num_rows($sqlCek);
-		// $rcek = mysqli_fetch_array($sqlCek);
-		
-		$sqlCek1 = mysqli_query($con, "SELECT * FROM tbl_schedule WHERE nokk='$nokk' AND (status='antri mesin' or status='sedang jalan') ORDER BY id DESC LIMIT 1");
-		$cek1 = mysqli_num_rows($sqlCek1);
+		$nipbr = $format . $Nol . $Urut;
+		return $nipbr;
+	}
+	$nou = nourut();
+	$nokk = $_GET['nokk'];
 
-		// if($rcek){
-			// if($_SERVER['REMOTE_ADDR'] == '10.0.5.132'){
-			// 	echo "edit";
-			// }
-		// }else{
-			// if($_SERVER['REMOTE_ADDR'] == '10.0.5.132'){
-			// 	echo "baru";
-			// }
-			// NOW
-				$sql_ITXVIEWKK  = db2_exec($conn2, "SELECT
+	$child = $r['ChildLevel'];
+	if ($nokk != "") {
+	}
+
+
+	$sqlCek1 = sqlsrv_query($con, "SELECT TOP 1 * FROM db_dying.tbl_schedule WHERE nokk='$nokk' AND (status='antri mesin' OR status='sedang jalan') ORDER BY id DESC", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+	$cek1 = sqlsrv_num_rows($sqlCek1);
+
+	// NOW
+	$sql_ITXVIEWKK  = db2_exec($conn2, "SELECT
 												TRIM(PRODUCTIONORDERCODE) AS PRODUCTIONORDERCODE,
 												TRIM(DEAMAND) AS DEMAND,
 												ORIGDLVSALORDERLINEORDERLINE,
@@ -445,38 +364,38 @@
 												ITXVIEWKK 
 											WHERE 
 												PRODUCTIONORDERCODE = '$nokk'");
-				$dt_ITXVIEWKK	= db2_fetch_assoc($sql_ITXVIEWKK);
+	$dt_ITXVIEWKK	= db2_fetch_assoc($sql_ITXVIEWKK);
 
-				$sql_pelanggan_buyer 	= db2_exec($conn2, "SELECT TRIM(LANGGANAN) AS PELANGGAN, TRIM(BUYER) AS BUYER FROM ITXVIEW_PELANGGAN 
+	$sql_pelanggan_buyer 	= db2_exec($conn2, "SELECT TRIM(LANGGANAN) AS PELANGGAN, TRIM(BUYER) AS BUYER FROM ITXVIEW_PELANGGAN 
 															WHERE ORDPRNCUSTOMERSUPPLIERCODE = '$dt_ITXVIEWKK[ORDPRNCUSTOMERSUPPLIERCODE]' AND CODE = '$dt_ITXVIEWKK[PROJECTCODE]'");
-				$dt_pelanggan_buyer		= db2_fetch_assoc($sql_pelanggan_buyer);
+	$dt_pelanggan_buyer		= db2_fetch_assoc($sql_pelanggan_buyer);
 
-				$sql_demand		= db2_exec($conn2, "SELECT LISTAGG(TRIM(DEAMAND), ', ') AS DEMAND,
+	$sql_demand		= db2_exec($conn2, "SELECT LISTAGG(TRIM(DEAMAND), ', ') AS DEMAND,
 													LISTAGG(''''|| TRIM(ORIGDLVSALORDERLINEORDERLINE) ||'''', ', ')  AS ORIGDLVSALORDERLINEORDERLINE
 													FROM ITXVIEWKK 
 													WHERE PRODUCTIONORDERCODE = '$nokk'");
-				$dt_demand		= db2_fetch_assoc($sql_demand);
+	$dt_demand		= db2_fetch_assoc($sql_demand);
 
-				if (!empty($dt_demand['ORIGDLVSALORDERLINEORDERLINE'])) {
-					$orderline	= $dt_demand['ORIGDLVSALORDERLINEORDERLINE'];
-				} else {
-					$orderline	= '0';
-				}
+	if (!empty($dt_demand['ORIGDLVSALORDERLINEORDERLINE'])) {
+		$orderline	= $dt_demand['ORIGDLVSALORDERLINEORDERLINE'];
+	} else {
+		$orderline	= '0';
+	}
 
-				$sql_po			= db2_exec($conn2, "SELECT TRIM(EXTERNALREFERENCE) AS NO_PO FROM ITXVIEW_KGBRUTO 
+	$sql_po			= db2_exec($conn2, "SELECT TRIM(EXTERNALREFERENCE) AS NO_PO FROM ITXVIEW_KGBRUTO 
 												WHERE PROJECTCODE = '$dt_ITXVIEWKK[PROJECTCODE]' AND ORIGDLVSALORDERLINEORDERLINE IN ($orderline)");
-				$dt_po    		= db2_fetch_assoc($sql_po);
+	$dt_po    		= db2_fetch_assoc($sql_po);
 
-				$sql_noitem     = db2_exec($conn2, "SELECT * FROM ORDERITEMORDERPARTNERLINK WHERE INACTIVE = 0
+	$sql_noitem     = db2_exec($conn2, "SELECT * FROM ORDERITEMORDERPARTNERLINK WHERE INACTIVE = 0
 													AND ORDPRNCUSTOMERSUPPLIERCODE = '$dt_ITXVIEWKK[ORDPRNCUSTOMERSUPPLIERCODE]' 
 													AND SUBCODE01 = '$dt_ITXVIEWKK[SUBCODE01]' AND SUBCODE02 = '$dt_ITXVIEWKK[SUBCODE02]' 
 													AND SUBCODE03 = '$dt_ITXVIEWKK[SUBCODE03]' AND SUBCODE04 = '$dt_ITXVIEWKK[SUBCODE04]' 
 													AND SUBCODE05 = '$dt_ITXVIEWKK[SUBCODE05]' AND SUBCODE06 = '$dt_ITXVIEWKK[SUBCODE06]'
 													AND SUBCODE07 = '$dt_ITXVIEWKK[SUBCODE07]' AND SUBCODE08 ='$dt_ITXVIEWKK[SUBCODE08]'
 													AND SUBCODE09 = '$dt_ITXVIEWKK[SUBCODE09]' AND SUBCODE10 ='$dt_ITXVIEWKK[SUBCODE10]'");
-				$dt_item        = db2_fetch_assoc($sql_noitem);
+	$dt_item        = db2_fetch_assoc($sql_noitem);
 
-				$sql_lebargramasi	= db2_exec($conn2, "SELECT i.LEBAR,
+	$sql_lebargramasi	= db2_exec($conn2, "SELECT i.LEBAR,
 														CASE
 														WHEN i2.GRAMASI_KFF IS NULL THEN i2.GRAMASI_FKF
 														ELSE i2.GRAMASI_KFF
@@ -486,9 +405,9 @@
 														LEFT JOIN ITXVIEWGRAMASI i2 ON i2.SALESORDERCODE = '$dt_ITXVIEWKK[PROJECTCODE]' AND i2.ORDERLINE = '$dt_ITXVIEWKK[ORIGDLVSALORDERLINEORDERLINE]'
 														WHERE 
 														i.SALESORDERCODE = '$dt_ITXVIEWKK[PROJECTCODE]' AND i.ORDERLINE = '$dt_ITXVIEWKK[ORIGDLVSALORDERLINEORDERLINE]'");
-				$dt_lg				= db2_fetch_assoc($sql_lebargramasi);
+	$dt_lg				= db2_fetch_assoc($sql_lebargramasi);
 
-				$sql_warna		= db2_exec($conn2, "SELECT DISTINCT TRIM(WARNA) AS WARNA FROM ITXVIEWCOLOR 
+	$sql_warna		= db2_exec($conn2, "SELECT DISTINCT TRIM(WARNA) AS WARNA FROM ITXVIEWCOLOR 
 													WHERE ITEMTYPECODE = '$dt_ITXVIEWKK[ITEMTYPEAFICODE]' 
 													AND SUBCODE01 = '$dt_ITXVIEWKK[SUBCODE01]' 
 													AND SUBCODE02 = '$dt_ITXVIEWKK[SUBCODE02]'
@@ -500,9 +419,9 @@
 													AND SUBCODE08 = '$dt_ITXVIEWKK[SUBCODE08]'
 													AND SUBCODE09 = '$dt_ITXVIEWKK[SUBCODE09]' 
 													AND SUBCODE10 = '$dt_ITXVIEWKK[SUBCODE10]'");
-				$dt_warna		= db2_fetch_assoc($sql_warna);
+	$dt_warna		= db2_fetch_assoc($sql_warna);
 
-				$sql_qtyorder   = db2_exec($conn2, "SELECT DISTINCT
+	$sql_qtyorder   = db2_exec($conn2, "SELECT DISTINCT
 															GROUPSTEPNUMBER,
 															INITIALUSERPRIMARYQUANTITY AS QTY_ORDER,
 															INITIALUSERSECONDARYQUANTITY AS QTY_ORDER_YARD
@@ -512,15 +431,15 @@
 															PRODUCTIONORDERCODE = '$nokk'
 														ORDER BY
 															GROUPSTEPNUMBER ASC LIMIT 1");
-				$dt_qtyorder    = db2_fetch_assoc($sql_qtyorder);
+	$dt_qtyorder    = db2_fetch_assoc($sql_qtyorder);
 
-				$sql_roll		= db2_exec($conn2, "SELECT count(*) AS ROLL, s2.PRODUCTIONORDERCODE
+	$sql_roll		= db2_exec($conn2, "SELECT count(*) AS ROLL, s2.PRODUCTIONORDERCODE
 													FROM STOCKTRANSACTION s2 
 													WHERE s2.ITEMTYPECODE ='KGF' AND s2.PRODUCTIONORDERCODE = '$dt_ITXVIEWKK[PRODUCTIONORDERCODE]'
 													GROUP BY s2.PRODUCTIONORDERCODE");
-				$dt_roll   		= db2_fetch_assoc($sql_roll);
+	$dt_roll   		= db2_fetch_assoc($sql_roll);
 
-				$sql_mesinknt	= db2_exec($conn2, "SELECT DISTINCT
+	$sql_mesinknt	= db2_exec($conn2, "SELECT DISTINCT
 														s.LOTCODE,
 														CASE
 															WHEN a.VALUESTRING IS NULL THEN '-'
@@ -530,63 +449,35 @@
 													LEFT JOIN PRODUCTIONDEMAND p ON p.CODE = s.LOTCODE 
 													LEFT JOIN ADSTORAGE a ON a.UNIQUEID = p.ABSUNIQUEID AND a.NAMENAME = 'MachineNo'
 													WHERE s.PRODUCTIONORDERCODE = '$nokk'");
-				$dt_mesinknt	= db2_fetch_assoc($sql_mesinknt);
-
-				// $sql_bonresep1	= db2_exec($conn2, "SELECT
-				// 										TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) AS PRODUCTIONORDERCODE,
-				// 										TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) || '-' || TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
-				// 										TRIM(SUFFIXCODE) AS SUFFIXCODE
-				// 									FROM
-				// 										PRODUCTIONRESERVATION PRODUCTIONRESERVATION 
-				// 									WHERE
-				// 										PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFD' AND PRODUCTIONRESERVATION.PRODUCTIONORDERCODE = '$nokk' 
-				// 										AND NOT SUFFIXCODE = '001'
-				// 									ORDER BY
-				// 										PRODUCTIONRESERVATION.GROUPLINE ASC LIMIT 1");
-				// $dt_bonresep1	= db2_fetch_assoc($sql_bonresep1);
-
-				// $sql_bonresep2	= db2_exec($conn2, "SELECT
-				// 										TRIM( PRODUCTIONRESERVATION.PRODUCTIONORDERCODE ) AS PRODUCTIONORDERCODE,
-				// 										TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) || '-' || TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP2,
-				// 										TRIM(SUFFIXCODE) AS SUFFIXCODE
-				// 									FROM
-				// 										PRODUCTIONRESERVATION PRODUCTIONRESERVATION 
-				// 									WHERE
-				// 										PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFD' AND PRODUCTIONRESERVATION.PRODUCTIONORDERCODE = '$nokk' 
-				// 										AND NOT SUFFIXCODE = '001'
-				// 									ORDER BY
-				// 										PRODUCTIONRESERVATION.GROUPLINE DESC LIMIT 1");
-				// $dt_bonresep2	= db2_fetch_assoc($sql_bonresep2);
-			// NOW
-		// }
-	}
+	$dt_mesinknt	= db2_fetch_assoc($sql_mesinknt);
+	// NOW
+}
 ?>
 <?php
-	$Kapasitas	= isset($_POST['kapasitas']) ? $_POST['kapasitas'] : '';
-	$TglMasuk	= isset($_POST['tglmsk']) ? $_POST['tglmsk'] : '';
-	$Item		= isset($_POST['item']) ? $_POST['item'] : '';
-	$Warna		= isset($_POST['warna']) ? $_POST['warna'] : '';
-	$Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
+$Kapasitas	= isset($_POST['kapasitas']) ? $_POST['kapasitas'] : '';
+$TglMasuk	= isset($_POST['tglmsk']) ? $_POST['tglmsk'] : '';
+$Item		= isset($_POST['item']) ? $_POST['item'] : '';
+$Warna		= isset($_POST['warna']) ? $_POST['warna'] : '';
+$Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 ?>
 <script type="text/javascript">
-	function bonresep1(){
-		var no_resep		= document.getElementById("no_resep").value;
-		var prod_order		= no_resep.substring(0, 8);
-		var group_number	= no_resep.substring(9);
-		// alert("no_resep");
+	function bonresep1() {
+		var no_resep = document.getElementById("no_resep").value;
+		var prod_order = no_resep.substring(0, 8);
+		var group_number = no_resep.substring(9);
 
-		$.get("api_schedule.php?prod_order="+prod_order+"&group_number="+group_number,function(data){
+		$.get("api_schedule.php?prod_order=" + prod_order + "&group_number=" + group_number, function(data) {
 			document.getElementById("suffix").value = data.SUFFIX_CODE;
 		});
 	}
 
-	function bonresep2(){
-		var no_resep2		= document.getElementById("no_resep2").value;
-		var prod_order2		= no_resep2.substring(0, 8);
-		var group_number2	= no_resep2.substring(9);
+	function bonresep2() {
+		var no_resep2 = document.getElementById("no_resep2").value;
+		var prod_order2 = no_resep2.substring(0, 8);
+		var group_number2 = no_resep2.substring(9);
 		// alert("no_resep");
 
-		$.get("api_schedule.php?prod_order="+prod_order2+"&group_number="+group_number2,function(data2){
+		$.get("api_schedule.php?prod_order=" + prod_order2 + "&group_number=" + group_number2, function(data2) {
 			document.getElementById("suffix2").value = data2.SUFFIX_CODE;
 		});
 	}
@@ -614,97 +505,97 @@
 					<label for="langganan" class="col-sm-3 control-label">Production Demand</label>
 					<div class="col-sm-8">
 						<input name="demand" type="text" class="form-control" id="demand" value="<?= $dt_demand['DEMAND']; ?><?php if ($cek > 0) {
-																											echo $rcek['nodemand'];
-																										} ?>" placeholder="Production Demand">
+																																	echo $rcek['nodemand'];
+																																} ?>" placeholder="Production Demand">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="langganan" class="col-sm-3 control-label">Langganan</label>
 					<div class="col-sm-8">
 						<input name="langganan" type="text" class="form-control" id="langganan" value="<?= $dt_pelanggan_buyer['PELANGGAN']; ?><?php if ($cek > 0) {
-																											echo $rcek['langganan'];
-																										} else {
-																											echo $pelanggan;
-																										} ?>" placeholder="Langganan">
+																																					echo $rcek['langganan'];
+																																				} else {
+																																					echo $pelanggan;
+																																				} ?>" placeholder="Langganan">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="buyer" class="col-sm-3 control-label">Buyer</label>
 					<div class="col-sm-8">
 						<input name="buyer" type="text" class="form-control" id="buyer" value="<?= $dt_pelanggan_buyer['BUYER']; ?><?php if ($cek > 0) {
-																									echo $rcek['buyer'];
-																								} else {
-																									echo $buyer;
-																								} ?>" placeholder="Buyer">
+																																		echo $rcek['buyer'];
+																																	} else {
+																																		echo $buyer;
+																																	} ?>" placeholder="Buyer">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="no_order" class="col-sm-3 control-label">No Order</label>
 					<div class="col-sm-4">
 						<input name="no_order" type="text" class="form-control" id="no_order" value="<?= $dt_ITXVIEWKK['PROJECTCODE']; ?><?php if ($cek > 0) {
-																											echo $rcek['no_order'];
-																										} else {
-																											if ($r['NoOrder'] != "") {
-																												echo $r['NoOrder'];
-																											} else if ($nokk != "") {
-																												echo $cekM['no_order'];
-																											}
-																										} ?>" placeholder="No Order">
+																																				echo $rcek['no_order'];
+																																			} else {
+																																				if ($r['NoOrder'] != "") {
+																																					echo $r['NoOrder'];
+																																				} else if ($nokk != "") {
+																																					echo $cekM['no_order'];
+																																				}
+																																			} ?>" placeholder="No Order">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="no_po" class="col-sm-3 control-label">PO</label>
 					<div class="col-sm-5">
 						<input name="no_po" type="text" class="form-control" id="no_po" value="<?= $dt_po['NO_PO']; ?><?php if ($cek > 0) {
-																									echo $rcek['po'];
-																								} else {
-																									if ($r['PONumber'] != "") {
-																										echo $r['PONumber'];
-																									} else if ($nokk != "") {
-																										echo $cekM['no_po'];
-																									}
-																								} ?>" placeholder="PO">
+																															echo $rcek['po'];
+																														} else {
+																															if ($r['PONumber'] != "") {
+																																echo $r['PONumber'];
+																															} else if ($nokk != "") {
+																																echo $cekM['no_po'];
+																															}
+																														} ?>" placeholder="PO">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="no_hanger" class="col-sm-3 control-label">No Hanger / No Item</label>
 					<div class="col-sm-3">
 						<input name="no_hanger" type="text" class="form-control" id="no_hanger" value="<?= $dt_ITXVIEWKK['NO_HANGER'] ?><?php if ($cek > 0) {
-																											echo $rcek['no_hanger'];
-																										} else {
-																											if ($r['HangerNo']) {
-																												echo $r['HangerNo'];
-																											} else if ($nokk != "") {
-																												echo $cekM['no_item'];
-																											}
-																										} ?>" placeholder="No Hanger">
+																																			echo $rcek['no_hanger'];
+																																		} else {
+																																			if ($r['HangerNo']) {
+																																				echo $r['HangerNo'];
+																																			} else if ($nokk != "") {
+																																				echo $cekM['no_item'];
+																																			}
+																																		} ?>" placeholder="No Hanger">
 					</div>
 					<div class="col-sm-3">
 						<input name="no_item" type="text" class="form-control" id="no_item" value="<?= $dt_item['EXTERNALITEMCODE'] ?><?php if ($rcek['no_item'] != "") {
-																										echo $rcek['no_item'];
-																									} else if ($r['ProductCode'] != "") {
-																										echo $r['ProductCode'];
-																									} else {
-																										if ($r['HangerNo']) {
-																											echo $r['HangerNo'];
-																										} else if ($nokk != "") {
-																											echo $cekM['no_item'];
-																										}
-																									} ?>" placeholder="No Item">
+																																			echo $rcek['no_item'];
+																																		} else if ($r['ProductCode'] != "") {
+																																			echo $r['ProductCode'];
+																																		} else {
+																																			if ($r['HangerNo']) {
+																																				echo $r['HangerNo'];
+																																			} else if ($nokk != "") {
+																																				echo $cekM['no_item'];
+																																			}
+																																		} ?>" placeholder="No Item">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="jns_kain" class="col-sm-3 control-label">Jenis Kain</label>
 					<div class="col-sm-8">
 						<textarea name="jns_kain" class="form-control" id="jns_kain" placeholder="Jenis Kain"><?= $dt_ITXVIEWKK['ITEMDESCRIPTION'] ?><?php if ($cek > 0) {
-																													echo $rcek['jenis_kain'];
-																												} else {
-																													if ($r['ProductDesc'] != "") {
-																														echo $r['ProductDesc'];
-																													} else if ($nokk != "") {
-																														echo $cekM['jenis_kain'];
-																													}
-																												} ?></textarea>
+																																							echo $rcek['jenis_kain'];
+																																						} else {
+																																							if ($r['ProductDesc'] != "") {
+																																								echo $r['ProductDesc'];
+																																							} else if ($nokk != "") {
+																																								echo $cekM['jenis_kain'];
+																																							}
+																																						} ?></textarea>
 					</div>
 				</div>
 				<div class="form-group">
@@ -719,77 +610,77 @@
 				<div class="form-group">
 					<label for="l_g" class="col-sm-3 control-label">Lebar X Gramasi</label>
 					<div class="col-sm-2">
-						<input name="lebar" type="text" class="form-control" id="lebar" value="<?= $dt_lg['LEBAR']; ?><?php if ($cek > 0) {
-																									echo $rcek['lebar'];
-																								} else {
-																									echo round($r['Lebar']);
-																								} ?>" placeholder="0" required>
+						<input name="lebar" type="number" min="0" class="form-control" id="lebar" value="<?= $dt_lg['LEBAR']; ?><?php if ($cek > 0) {
+																																	echo $rcek['lebar'];
+																																} else {
+																																	echo round($r['Lebar']);
+																																} ?>" placeholder="0" required>
 					</div>
 					<div class="col-sm-2">
-						<input name="grms" type="text" class="form-control" id="grms" value="<?= $dt_lg['GRAMASI']; ?><?php if ($cek > 0) {
-																									echo $rcek['gramasi'];
-																								} else {
-																									echo round($r['Gramasi']);
-																								} ?>" placeholder="0" required>
+						<input name="grms" type="number" min="0" class="form-control" id="grms" value="<?= $dt_lg['GRAMASI']; ?><?php if ($cek > 0) {
+																																	echo $rcek['gramasi'];
+																																} else {
+																																	echo round($r['Gramasi']);
+																																} ?>" placeholder="0" required>
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="warna" class="col-sm-3 control-label">Warna</label>
 					<div class="col-sm-8">
 						<input name="warna" type="text" class="form-control" id="warna" value="<?= $dt_warna['WARNA']; ?><?php if ($cek > 0) {
-																									echo $rcek['warna'];
-																								} else {
-																									if ($r['Color'] != "") {
-																										echo $r['Color'];
-																									} else if ($nokk != "") {
-																										echo $cekM['warna'];
-																									}
-																								} ?>" placeholder="Warna">
+																																echo $rcek['warna'];
+																															} else {
+																																if ($r['Color'] != "") {
+																																	echo $r['Color'];
+																																} else if ($nokk != "") {
+																																	echo $cekM['warna'];
+																																}
+																															} ?>" placeholder="Warna">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="no_warna" class="col-sm-3 control-label">No Warna</label>
 					<div class="col-sm-8">
 						<input name="no_warna" type="text" class="form-control" id="no_warna" value="<?= $dt_ITXVIEWKK['NO_WARNA']; ?><?php if ($cek > 0) {
-																											echo $rcek['no_warna'];
-																										} else {
-																											if ($r['ColorNo'] != "") {
-																												echo $r['ColorNo'];
-																											} else if ($nokk != "") {
-																												echo $cekM['no_warna'];
-																											}
-																										} ?>" placeholder="No Warna">
+																																			echo $rcek['no_warna'];
+																																		} else {
+																																			if ($r['ColorNo'] != "") {
+																																				echo $r['ColorNo'];
+																																			} else if ($nokk != "") {
+																																				echo $cekM['no_warna'];
+																																			}
+																																		} ?>" placeholder="No Warna">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="qty_order" class="col-sm-3 control-label">Qty Order</label>
 					<div class="col-sm-3">
-						<div class="input-group">
-							<input name="qty1" type="text" class="form-control" id="qty1" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
-																										echo $rcek['qty_order'];
-																									} else {
-																										echo round($r['BatchQuantity'], 2);
-																									} ?>" placeholder="0.00" required>
+						<div class="input-group" lang="en">
+							<input name="qty1" type="number" min="0" class="form-control" id="qty1" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
+																																				echo $rcek['qty_order'];
+																																			} else {
+																																				echo round($r['BatchQuantity'], 2);
+																																			} ?>" placeholder="0.00" required>
 							<span class="input-group-addon">KGs</span>
 						</div>
 					</div>
 					<div class="col-sm-4">
 						<div class="input-group">
-							<input name="qty2" type="text" class="form-control" id="qty2" value="<?= $dt_qtyorder['QTY_ORDER_YARD']; ?><?php if ($cek > 0) {
-																										echo $rcek['pjng_order'];
-																									} else {
-																										echo round($r['Quantity'], 2);
-																									} ?>" placeholder="0.00" style="text-align: right;" required>
+							<input name="qty2" type="number" min="0" class="form-control" id="qty2" value="<?= $dt_qtyorder['QTY_ORDER_YARD']; ?><?php if ($cek > 0) {
+																																						echo $rcek['pjng_order'];
+																																					} else {
+																																						echo round($r['Quantity'], 2);
+																																					} ?>" placeholder="0.00" style="text-align: right;" required>
 							<span class="input-group-addon">
 								<select name="satuan1" style="font-size: 12px;" id="satuan1">
 									<option value="">Pilih</option>
-									<option value="Yard" <?php if ($r['UnitID'] OR $dt_qtyorder['SATUAN_QTY'] == "21") {
+									<option value="Yard" <?php if ($r['UnitID'] or $dt_qtyorder['SATUAN_QTY'] == "21") {
 																echo "SELECTED";
 															} ?>>Yard</option>
-									<option value="Meter" <?php if ($r['UnitID'] OR $dt_qtyorder['SATUAN_QTY'] == "10") {
+									<option value="Meter" <?php if ($r['UnitID'] or $dt_qtyorder['SATUAN_QTY'] == "10") {
 																echo "SELECTED";
 															} ?>>Meter</option>
-									<option value="PCS" <?php if ($r['UnitID'] OR $dt_qtyorder['SATUAN_QTY'] == "1") {
+									<option value="PCS" <?php if ($r['UnitID'] or $dt_qtyorder['SATUAN_QTY'] == "1") {
 															echo "SELECTED";
 														} ?>>PCS</option>
 								</select>
@@ -802,38 +693,38 @@
 					<div class="col-sm-2">
 						<input name="lot" type="text" class="form-control" id="lot" value="<?= $dt_ITXVIEWKK['LOT']; ?>" placeholder="Lot">
 					</div>
-				</div> 
+				</div>
 				<div class="form-group">
 					<label for="jml_bruto" class="col-sm-3 control-label">Roll &amp; Qty</label>
 					<div class="col-sm-2">
 						<?php
-							if(!empty($dt_roll['ROLL'])){
-								$roll = $dt_roll['ROLL'];
-							}else{
-								if ($cek > 0) {
-									$roll	= $rcek['rol'];
-								} else {
-									if ($r['RollCount'] != "") {
-										$roll = round($r['RollCount']);
-									} else if ($nokk != "") {
-										$roll = $cekM['jml_roll'];
-									}
+						if (!empty($dt_roll['ROLL'])) {
+							$roll = $dt_roll['ROLL'];
+						} else {
+							if ($cek > 0) {
+								$roll	= $rcek['rol'];
+							} else {
+								if ($r['RollCount'] != "") {
+									$roll = round($r['RollCount']);
+								} else if ($nokk != "") {
+									$roll = $cekM['jml_roll'];
 								}
 							}
+						}
 						?>
-						<input name="qty3" type="text" class="form-control" id="qty3" value="<?= $roll;  ?>" placeholder="0.00" required>
+						<input name="qty3" type="number" min="0" class="form-control" id="qty3" value="<?= $roll;  ?>" placeholder="0.00" required>
 					</div>
 					<div class="col-sm-3">
 						<div class="input-group">
-							<input name="qty4" type="text" class="form-control" id="qty4" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
-																										echo $rcek['bruto'];
-																									} else {
-																										if ($r['Weight'] != "") {
-																											echo round($r['Weight'], 2);
-																										} else if ($nokk != "") {
-																											echo $cekM['bruto'];
-																										}
-																									} ?>" placeholder="0.00" style="text-align: right;" required>
+							<input name="qty4" type="number" min="0" class="form-control" id="qty4" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
+																																				echo $rcek['bruto'];
+																																			} else {
+																																				if ($r['Weight'] != "") {
+																																					echo round($r['Weight'], 2);
+																																				} else if ($nokk != "") {
+																																					echo $cekM['bruto'];
+																																				}
+																																			} ?>" placeholder="0.00" style="text-align: right;" required>
 							<span class="input-group-addon">KGs</span>
 						</div>
 					</div>
@@ -858,61 +749,34 @@
 			<div class="col-md-6">
 				<div class="form-group">
 					<label for="kapasitas" class="col-sm-3 control-label">Kapasitas Mesin</label>
-					<!-- <div class="col-sm-3">
-						<select name="kapasitas" class="form-control" id="kapasitas" onChange="no_msn();hload();">
+					<div class="col-sm-3">
+						<select name="kapasitas" onchange="window.location='?p=Form-Schedule&nokk='+document.getElementById('nokk').value+'&kap='+this.value" class="form-control">
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT kapasitas FROM tbl_mesin GROUP BY kapasitas ORDER BY kapasitas DESC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT kapasitas FROM db_dying.tbl_mesin GROUP BY kapasitas ORDER BY kapasitas DESC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['kapasitas']; ?>" <?php if ($_GET['kap'] == $rK['kapasitas']) {
 																					echo "SELECTED";
 																				} ?>><?php echo $rK['kapasitas']; ?> KGs</option>
 							<?php } ?>
 						</select>
-					</div> -->
-					<?php // if($_SERVER['REMOTE_ADDR'] == '10.0.5.132') : ?>
-						<div class="col-sm-3">
-							<select name="kapasitas" onchange="window.location='?p=Form-Schedule&nokk='+document.getElementById('nokk').value+'&kap='+this.value" class="form-control">
-								<option value="">Pilih</option>
-								<?php
-								$sqlKap = mysqli_query($con, "SELECT kapasitas FROM tbl_mesin GROUP BY kapasitas ORDER BY kapasitas DESC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
-								?>
-									<option value="<?php echo $rK['kapasitas']; ?>" <?php if ($_GET['kap'] == $rK['kapasitas']) {
-																						echo "SELECTED";
-																					} ?>><?php echo $rK['kapasitas']; ?> KGs</option>
-								<?php } ?>
-							</select>
-						</div>
-					<?php // endif; ?>
+					</div>
 				</div>
 				<div class="form-group">
 					<label for="no_mc" class="col-sm-3 control-label">No MC</label>
-					<!-- <div class="col-sm-2">
-						<select name="no_mc" class="form-control" id="no_mc" onchange="select_resep();" required>
+					<div class="col-sm-2">
+						<select name="no_mc" class="form-control" required>
 							<option value="">Pilih</option>
-							  <?php
-								$sqlKap = mysqli_query($con, "SELECT no_mesin FROM tbl_mesin WHERE kapasitas='" . $_GET['kap'] . "' ORDER BY no_mesin ASC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
-								?>
-								  <option value="<?php echo $rK['no_mesin']; ?>"><?php echo $rK['no_mesin']; ?></option>
-							 <?php } ?>	 
+							<?php
+							$sqlKap = sqlsrv_query($con, "SELECT no_mesin FROM db_dying.tbl_mesin WHERE kapasitas='" . $_GET['kap'] . "' ORDER BY no_mesin ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
+							?>
+								<option value="<?php echo $rK['no_mesin']; ?>"><?php echo $rK['no_mesin']; ?></option>
+							<?php } ?>
 						</select>
-					</div> -->
-					<?php // if($_SERVER['REMOTE_ADDR'] == '10.0.5.132') : ?>
-						<div class="col-sm-2">
-							<select name="no_mc" class="form-control" required>
-								<option value="">Pilih</option>
-								<?php
-									$sqlKap = mysqli_query($con, "SELECT no_mesin FROM tbl_mesin WHERE kapasitas='" . $_GET['kap'] . "' ORDER BY no_mesin ASC");
-									while ($rK = mysqli_fetch_array($sqlKap)) {
-									?>
-									<option value="<?php echo $rK['no_mesin']; ?>"><?php echo $rK['no_mesin']; ?></option>
-								<?php } ?>	 
-							</select>
-						</div>
-					<?php// endif; ?>
+					</div>
+
 				</div>
 				<div class="form-group">
 					<label for="no_urut" class="col-sm-3 control-label">No Urut</label>
@@ -920,8 +784,8 @@
 						<select name="no_urut" class="form-control" id="no_urut" required>
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT no_urut FROM tbl_urut ORDER BY no_urut ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT no_urut FROM db_dying.tbl_urut ORDER BY no_urut ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['no_urut']; ?>"><?php echo $rK['no_urut']; ?></option>
 							<?php } ?>
@@ -933,7 +797,7 @@
 					<label for="loading" class="col-sm-3 control-label">Loading</label>
 					<div class="col-sm-3">
 						<div class="input-group">
-							<input name="loading" type="text" style="text-align: right;" class="form-control" id="loading" value="" placeholder="0.00">
+							<input name="loading" type="number" min="0" style="text-align: right;" class="form-control" id="loading" value="" placeholder="0.00">
 							<span class="input-group-addon">%</span>
 						</div>
 					</div>
@@ -974,8 +838,8 @@
 						<select name="proses" class="form-control" id="proses" onChange="cekpro(); cekpro1(); cekpro2(); aktif_staff();" required>
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT proses FROM tbl_proses ORDER BY proses ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT proses FROM db_dying.tbl_proses ORDER BY proses ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['proses']; ?>"><?php echo $rK['proses']; ?></option>
 							<?php } ?>
@@ -1020,51 +884,48 @@
 				<div class="form-group">
 					<label for="no_resep" class="col-sm-3 control-label">No Bon Resep 1</label>
 					<div class="col-sm-3">
-						<!-- <input name="no_resep" type="text" class="form-control" id="no_resep" value="<?= $rcek['no_resep']; ?><?= $dt_bonresep1['BONRESEP1']; ?>" placeholder="No Bon Resep 1"> -->
 						<select name="no_resep" class="form-control select2" id="no_resep" onchange="bonresep1()">
 							<option disabled selected>Pilih Bon Resep</option>
 							<?php
-								$q_bonresep				= db2_exec($conn2, "SELECT
+							$q_bonresep				= db2_exec($conn2, "SELECT
 																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) AS PRODUCTIONORDERCODE,
-																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) || '-' || TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
+																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) + '-' + TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
 																				TRIM(SUFFIXCODE) AS SUFFIXCODE
 																			FROM
-																				PRODUCTIONRESERVATION PRODUCTIONRESERVATION 
+																				DB2ADMIN.PRODUCTIONRESERVATION 
 																			WHERE
 																				(PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFD' OR PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFF')
 																				AND	PRODUCTIONRESERVATION.PRODUCTIONORDERCODE = '$nokk'
 																			ORDER BY
 																				PRODUCTIONRESERVATION.GROUPLINE ASC");
-								while ($row_bonresep 	= db2_fetch_assoc($q_bonresep)) {
+							while ($row_bonresep 	= db2_fetch_assoc($q_bonresep)) {
 							?>
 								<option value="<?= $row_bonresep['BONRESEP1'] ?>"><?= $row_bonresep['BONRESEP1'] ?></option>
 							<?php } ?>
 						</select>
 					</div>
 					<div class="col-sm-3">
-						<!-- <input name="suffix" type="text" class="form-control" id="suffix" value="<?= $rcek['suffix']; ?><?= $dt_bonresep1['SUFFIXCODE']; ?>" placeholder="Suffix 1"> -->
 						<input name="suffix" type="text" class="form-control" id="suffix" value="" placeholder="Suffix 1">
 					</div>
 				</div>
 				<div class="form-group">
 					<label for="no_resep2" class="col-sm-3 control-label">No Bon Resep 2</label>
 					<div class="col-sm-3">
-						<!-- <input name="no_resep2" type="text" class="form-control" id="no_resep2" value="<?= $rcek['no_resep2']; ?><?= $dt_bonresep2['BONRESEP2']; ?>" placeholder="No Bon Resep 2"> -->
 						<select name="no_resep2" class="form-control select2" id="no_resep2" onchange="bonresep2()">
 							<option disabled selected>Pilih Bon Resep</option>
 							<?php
-								$q_bonresep2				= db2_exec($conn2, "SELECT
+							$q_bonresep2				= db2_exec($conn2, "SELECT
 																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) AS PRODUCTIONORDERCODE,
-																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) || '-' || TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
+																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) + '-' + TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
 																				TRIM(SUFFIXCODE) AS SUFFIXCODE
 																			FROM
-																				PRODUCTIONRESERVATION PRODUCTIONRESERVATION 
+																				DB2ADMIN.PRODUCTIONRESERVATION 
 																			WHERE
 																				(PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFD' OR PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFF')
 																				AND	PRODUCTIONRESERVATION.PRODUCTIONORDERCODE = '$nokk'
 																			ORDER BY
 																				PRODUCTIONRESERVATION.GROUPLINE ASC");
-								while ($row_bonresep2 	= db2_fetch_assoc($q_bonresep2)) {
+							while ($row_bonresep2 	= db2_fetch_assoc($q_bonresep2)) {
 							?>
 								<option value="<?= $row_bonresep2['BONRESEP1'] ?>"><?= $row_bonresep2['BONRESEP1'] ?></option>
 							<?php } ?>
@@ -1117,8 +978,8 @@
 						<select name="energi" class="form-control" disabled>
 							<option value="">Pilih</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT kode FROM tbl_energi ORDER BY kode ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT kode FROM db_dying.tbl_energi ORDER BY kode ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['kode']; ?>"><?php echo $rK['kode']; ?></option>
 							<?php } ?>
@@ -1126,33 +987,7 @@
 					</div>
 
 				</div>
-				<!--  
-				<div class="form-group">
-                  <label for="target" class="col-md-3 control-label">Std Target</label>
-                  <div class="col-md-3">
-					  <select name="personil" class="form-control" required>
-							  	<option value="">Pilih</option>
-							  <?php
-								$sqlKap = mysqli_query($con, "SELECT target FROM tbl_std_jam  ORDER BY target ASC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
-								?>
-								  <option value="<?php echo $rK['target']; ?>"><?php echo $rK['target']; ?> Jam</option>
-							 <?php } ?>	  
-					  </select>					  	  
-                  <span class="help-block with-errors"></span>
-                  </div>
-				</div>  
-				-->
-				<!-- <div class="form-group">
-					<label for="target" class="col-md-3 control-label">Std Target</label>
-					<div class="col-md-3">
-						<div class="input-group">
-							<input name="target" type="text" class="form-control" id="target" value="" placeholder="0" style="text-align: right;">
-							<span class="input-group-addon">Jam</span>
-							<span class="help-block with-errors"></span>
-						</div>
-					</div>
-				</div> -->
+
 				<div class="form-group">
 					<label for="personil" class="col-sm-3 control-label">Personil</label>
 					<div class="col-sm-5">
@@ -1167,8 +1002,8 @@
 							<option value="">Pilih</option>
 							<option value="-">-</option>
 							<?php
-							$sqlKap = mysqli_query($con, "SELECT nama FROM tbl_staff WHERE jabatan='SPV' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
-							while ($rK = mysqli_fetch_array($sqlKap)) {
+							$sqlKap = sqlsrv_query($con, "SELECT nama FROM db_dying.tbl_staff WHERE jabatan='SPV' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
+							while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['nama']; ?>"><?php echo $rK['nama']; ?></option>
 							<?php } ?>
@@ -1194,9 +1029,6 @@
 							<option value='Relaxing-Preset'>Relaxing-Preset</option>
 							<option value='Scouring-Preset'>Scouring-Preset</option>
 							<option value='Continuous'>Continuous</option>
-							<!--<option value='Test Mesin' >Test Mesin</option>
-							    <option value='Test Obat' >Test Obat</option>
-							  	<option value='Test Proses' >Test Proses</option>-->
 							<option value='Tolak Basah'>Tolak Basah</option>
 							<option value='Proses AKW'>Proses AKW</option>
 							<option value='Ganti Kain Internal'>Ganti Kain Internal</option>
@@ -1231,7 +1063,6 @@
 		<div class="box-footer">
 			<button type="button" class="btn btn-default pull-left" name="back" value="kembali" onClick="window.location='?p=Schedule'">Kembali <i class="fa fa-arrow-circle-o-left"></i></button>
 			<?php if ($cek1 > 0) { ?>
-				<!-- <button type="submit" class="btn btn-primary pull-right" name="update" value="update">Ubah <i class="fa fa-edit"></i></button> -->
 			<?php } else { ?>
 				<button type="submit" class="btn btn-primary pull-right" name="save" value="save">Simpan <i class="fa fa-save"></i></button>
 			<?php } ?>
@@ -1241,114 +1072,36 @@
 </form>
 
 <?php
-	if ($_POST['save'] == "save") {
-		$qryCek = mysqli_query($con, "SELECT * from tbl_schedule WHERE `status`='sedang jalan' and  no_mesin='$_POST[no_mc]'");
-		$row = mysqli_num_rows($qryCek);
-		if ($row > 0 and $_POST['no_urut'] == "1") {
-			echo "<script> swal({
+if ($_POST['save'] == "save") {
+	$qryCek = sqlsrv_query(
+		$con,
+		"SELECT * FROM db_dying.tbl_schedule WHERE status='sedang jalan' AND  no_mesin='$_POST[no_mc]'",
+		array(),
+		array("Scrollable" => SQLSRV_CURSOR_KEYSET)
+	);
+	$row = sqlsrv_num_rows($qryCek);
+	if ($row > 0 and $_POST['no_urut'] == "1") {
+		echo "<script> swal({
 				title: 'Tidak bisa input urutan ke-`1`, mesin masih jalan',
 				text: ' Klik OK untuk Input No Urut kembali',
 				type: 'warning'
 			}, function(){
 				window.location='';
 			});</script>";
+	} else {
+		if ($_POST['nokk'] != "") {
+			$kartu = $_POST['nokk'];
 		} else {
-			if ($_POST['nokk'] != "") {
-				$kartu = $_POST['nokk'];
-			} else {
-				$kartu = $nou;
-			}
-			$warna = str_replace("'", "''", $_POST['warna']);
-			$nowarna = str_replace("'", "''", $_POST['no_warna']);
-			$jns = str_replace("'", "''", $_POST['jns_kain']);
-			$po = str_replace("'", "''", $_POST['no_po']);
-			$lot = trim($_POST['lot']);
-			if(!empty($_POST['qty4']) && !empty($_POST['kapasitas'])){
-				$loading1 = round($_POST['qty4'] / $_POST['kapasitas'], 4) * 100;
-			}else{
-				$loading1 = '0';
-			}
-			if ($_POST['kk_kestabilan'] == "1") {
-				$kk_kestabilan = "1";
-			} else {
-				$kk_kestabilan = "0";
-			}
-			if ($_POST['kk_normal'] == "1") {
-				$kk_normal = "1";
-			} else {
-				$kk_normal = "0";
-			}
-			$sqlData = mysqli_query($con, "INSERT INTO tbl_schedule SET
-														nokk='$kartu',
-														nodemand='$_POST[demand]',
-														langganan='$_POST[langganan]',
-														buyer='$_POST[buyer]',
-														no_order='$_POST[no_order]',
-														po='$po',
-														no_hanger='$_POST[no_hanger]',
-														no_item='$_POST[no_item]',
-														jenis_kain='$jns',
-														tgl_delivery='$_POST[tgl_delivery]',
-														lebar='$_POST[lebar]',
-														gramasi='$_POST[grms]',
-														warna='$warna',
-														no_warna='$nowarna',
-														qty_order='$_POST[qty1]',
-														pjng_order='$_POST[qty2]',
-														satuan_order='$_POST[satuan1]',
-														lot='$lot',
-														rol='$_POST[qty3]',
-														bruto='$_POST[qty4]',
-														no_rajut='$_POST[no_rajut]',
-														shift='$_POST[shift]',
-														g_shift='$_POST[g_shift]',
-														kapasitas='$_POST[kapasitas]',
-														no_mesin='$_POST[no_mc]',
-														no_urut='$_POST[no_urut]',
-														no_sch='$_POST[no_urut]',
-														loading='$loading1',
-														resep='$_POST[resep]',
-														no_resep='$_POST[no_resep]',
-														no_resep2='$_POST[no_resep2]',
-														suffix='$_POST[suffix]',
-														suffix2='$_POST[suffix2]',
-														energi='$_POST[energi]',
-														dyestuff='$_POST[dyestuff]',
-														proses='$_POST[proses]',
-														revisi='$_POST[revisi]',
-														kategori_warna='$_POST[kategori_warna]',
-														ket_status='$_POST[ket]',
-														ket_kain='$_POST[ket_kain]',
-														tgl_masuk=now(),
-														personil='$_POST[personil]',
-														target='$_POST[target]',
-														kk_kestabilan='$kk_kestabilan',
-														kk_normal='$kk_normal',
-														tgl_update=now()");
-			if ($sqlData) {
-				// echo "<script>alert('Data Tersimpan');</script>";
-				// echo "<script>window.location.href='?p=Input-Data-KJ;</script>";
-				echo "<script>swal({
-				title: 'Data Tersimpan',   
-				text: 'Klik Ok untuk input data kembali',
-				type: 'success',
-				}).then((result) => {
-				if (result.value) {
-					window.location.href='?p=Schedule'; 
-				}
-				});</script>";
-			}
+			$kartu = $nou;
 		}
-	}
-	if ($_POST['update'] == "update") {
 		$warna = str_replace("'", "''", $_POST['warna']);
 		$nowarna = str_replace("'", "''", $_POST['no_warna']);
 		$jns = str_replace("'", "''", $_POST['jns_kain']);
 		$po = str_replace("'", "''", $_POST['no_po']);
 		$lot = trim($_POST['lot']);
-		if(!empty($_POST['qty4']) && !empty($_POST['kapasitas'])){
+		if (!empty($_POST['qty4']) && !empty($_POST['kapasitas'])) {
 			$loading1 = round($_POST['qty4'] / $_POST['kapasitas'], 4) * 100;
-		}else{
+		} else {
 			$loading1 = '0';
 		}
 		if ($_POST['kk_kestabilan'] == "1") {
@@ -1361,49 +1114,139 @@
 		} else {
 			$kk_normal = "0";
 		}
-		$sqlData = mysqli_query($con, "UPDATE tbl_schedule SET 
-				nodemand='$_POST[demand]',
-				kapasitas='$_POST[kapasitas]',
-				no_mesin='$_POST[no_mc]',
-				no_urut='$_POST[no_urut]',
-				no_sch='$_POST[no_urut]',
-				loading='$loading1',
-				resep='$_POST[resep]',
-				no_resep='$_POST[no_resep]',
-				no_resep2='$_POST[no_resep2]',
-				suffix='$_POST[suffix]',
-				suffix2='$_POST[suffix2]',
-				energi='$_POST[energi]',
-				dyestuff='$_POST[dyestuff]',
-				proses='$_POST[proses]',
-				revisi='$_POST[revisi]',
-				kategori_warna='$_POST[kategori_warna]',
-				shift='$_POST[shift]',
-				g_shift='$_POST[g_shift]',
-				no_rajut='$_POST[no_rajut]',
-				ket_status='$_POST[ket]',
-				ket_kain='$_POST[ket_kain]',
-				personil='$_POST[personil]',
-				target='$_POST[target]',
-				tgl_stop=now(),
-				kk_kestabilan='$kk_kestabilan',
-				kk_normal='$kk_normal',
-				tgl_update=now()
-			WHERE nokk='$_POST[nokk]'");
+		$query  = "INSERT INTO db_dying.tbl_schedule 
+					(
+						nokk,
+						nodemand,
+						langganan,
+						buyer,
+						no_order,
+						po,
+						no_hanger,
+						no_item,
+						jenis_kain,
+						tgl_delivery,
+						lebar,
+						gramasi,
+						warna,
+						no_warna,
+						qty_order,
+						pjng_order,
+						satuan_order,
+						lot,
+						rol,
+						bruto,
+						no_rajut,
+						shift,
+						g_shift,
+						kapasitas,
+						no_mesin,
+						no_urut,
+						no_sch,
+						loading,
+						resep,
+						no_resep,
+						no_resep2,
+						suffix,
+						suffix2,
+						energi,
+						dyestuff,
+						proses,
+						revisi,
+						kategori_warna,
+						ket_status,
+						ket_kain,
+						tgl_masuk,
+						personil,
+						target,
+						kk_kestabilan,
+						kk_normal,
+						tgl_update
+					) 
+					VALUES 
+					(
+						?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?,?,?,?,?,?,?,?
+					)";
+
+		$lebar = isset($_POST['lebar']) ? (float) $_POST['lebar'] : 0;
+		$gramasi = isset($_POST['grms']) ? (float) $_POST['grms'] : 0;
+
+		$qty1 = isset($_POST['qty1']) ? (int) $_POST['qty1'] : 0;
+		$qty2 = isset($_POST['qty2']) ? (int) $_POST['qty2'] : 0;
+		$qty3 = isset($_POST['qty3']) ? (int) $_POST['qty3'] : 0;
+		$qty4 = isset($_POST['qty4']) ? (int) $_POST['qty4'] : 0;
+
+		$ket_kain = isset($_POST['ket_kain']) ? $_POST['ket_kain'] : '';
+		if (strlen($ket_kain) > 100) {
+			$ket_kain = substr($ket_kain, 0, 100);
+		}
+
+		$params = [
+			$kartu,
+			$_POST['demand'],
+			$_POST['langganan'],
+			$_POST['buyer'],
+			$_POST['no_order'],
+			$po,
+			$_POST['no_hanger'],
+			$_POST['no_item'],
+			$jns,
+			$_POST['tgl_delivery'],
+			$lebar,
+			$gramasi,
+			$warna,
+			$nowarna,
+			$qty1,
+			$qty2,
+			$_POST['satuan1'],
+			$lot,
+			$qty3,
+			$qty4,
+			$_POST['no_rajut'],
+			$_POST['shift'],
+			$_POST['g_shift'],
+			$_POST['kapasitas'],
+			$_POST['no_mc'],
+			$_POST['no_urut'],
+			$_POST['no_urut'],
+			$loading1,
+			$_POST['resep'],
+			$_POST['no_resep'],
+			$_POST['no_resep2'],
+			$_POST['suffix'],
+			$_POST['suffix2'],
+			$_POST['energi'],
+			$_POST['dyestuff'],
+			$_POST['proses'],
+			$_POST['revisi'],
+			$_POST['kategori_warna'],
+			$_POST['ket'],
+			$ket_kain,
+			date('Y-m-d H:i:s'),
+			$_POST['personil'],
+			$_POST['target'],
+			$kk_kestabilan,
+			$kk_normal,
+			date('Y-m-d H:i:s')
+		];
+
+		$sqlData = sqlsrv_query($con, $query, $params);
+
 
 		if ($sqlData) {
-			// echo "<script>alert('Data Telah Diubah');</script>";
-			// echo "<script>window.location.href='?p=Input-Data-KJ;</script>";
 			echo "<script>swal({
-				title: 'Data Telah DiUbah',   
+				title: 'Data Tersimpan',   
 				text: 'Klik Ok untuk input data kembali',
 				type: 'success',
 				}).then((result) => {
 				if (result.value) {
-					
 					window.location.href='?p=Schedule'; 
 				}
 				});</script>";
+		} else {
+			var_dump(sqlsrv_errors());
 		}
 	}
+}
+
 ?>
