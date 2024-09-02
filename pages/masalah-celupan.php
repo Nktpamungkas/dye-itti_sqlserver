@@ -1,7 +1,7 @@
 <?PHP
-ini_set("error_reporting", 1);
+// ini_set("error_reporting", 1);
 session_start();
-include"koneksi.php";
+include "koneksi.php";
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -13,12 +13,29 @@ include"koneksi.php";
 
 <body>
 <?php
-   $data=mysqli_query($con,"SELECT a.masalah,a.inspektor,a.tidakan_perbaikan,b.operator_keluar,b.proses,b.shift,b.g_shift,c.nokk,d.no_order,d.no_mesin,d.buyer,d.warna
-FROM tbl_masalah_celupan a
-inner join tbl_hasilcelup b on a.id_hasilcelup=b.id
-inner join tbl_montemp c on b.id_montemp=c.id
-inner join tbl_schedule d on c.id_schedule=d.id
-ORDER BY a.id ASC");
+   $data=sqlsrv_query($con,"SELECT
+                              a.masalah,
+                              a.inspektor,
+                              a.tidakan_perbaikan,
+                              b.operator_keluar,
+                              b.proses,
+                              b.shift,
+                              b.g_shift,
+                              c.nokk,
+                              d.no_order,
+                              d.no_mesin,
+                              d.buyer,
+                              d.warna
+                            FROM
+                              db_dying.tbl_masalah_celupan a
+                            inner join db_dying.tbl_hasilcelup b on
+                              a.id_hasilcelup = b.id
+                            inner join db_dying.tbl_montemp c on
+                              b.id_montemp = c.id
+                            inner join db_dying.tbl_schedule d on
+                              c.id_schedule = d.id
+                            ORDER BY
+                              a.id ASC");
 	$no=1;
 	$n=1;
 	$c=0;
@@ -59,10 +76,10 @@ ORDER BY a.id ASC");
 	return $waktu;
 }
 	  $col=0;
-  while($rowd=mysqli_fetch_array($data)){
+  while($rowd=sqlsrv_fetch_array($data)){
 			$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
-	  		$qCek=mysqli_query($con,"SELECT id as idb FROM tbl_potongcelup WHERE nokk='$rowd[nokk]' ORDER BY id DESC LIMIT 1");
-	  	    $rCEk=mysqli_fetch_array($qCek);
+	  		$qCek=sqlsrv_query($con,"SELECT TOP 1 id as idb FROM db_dying.tbl_potongcelup WHERE nokk='$rowd[nokk]' ORDER BY id DESC ");
+	  	    $rCEk=sqlsrv_fetch_array($qCek);
 		 ?>
        <tr bgcolor="<?php echo $bgcolor; ?>">
          <td align="center"><font size="-1"><?php echo $rowd['nokk'];?></font></td>
