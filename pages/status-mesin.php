@@ -1,5 +1,5 @@
 <?php
-ini_set("error_reporting", 1);
+// ini_set("error_reporting", 1);
 session_start();
 include "koneksi.php";
 ?>
@@ -85,15 +85,31 @@ include "koneksi.php";
 								function NoMesin($mc)
 								{
 									include "koneksi.php";
-									$qMC = mysqli_query($con, "SELECT a.ket_status,IF(DATEDIFF(now(),a.tgl_delivery) > 0,'Urgent',
-														IF(DATEDIFF(now(),a.tgl_delivery) > -4,'Potensi Delay','')) as `sts` FROM tbl_schedule a 
-														LEFT JOIN tbl_montemp b ON a.id=b.id_schedule
-														WHERE a.no_mesin='$mc' and (b.`status`='sedang jalan' or a.`status`='antri mesin') ORDER BY a.no_urut ASC");
-									$dMC = mysqli_fetch_array($qMC);
-									$qLama = mysqli_query($con, "SELECT round(TIME_FORMAT(timediff(b.tgl_target,now()),'%H')) as lama FROM tbl_schedule a
-														LEFT JOIN tbl_montemp b ON a.id=b.id_schedule
-														WHERE a.no_mesin='$mc' AND b.status='sedang jalan' ORDER BY a.no_urut ASC");
-									$dLama = mysqli_fetch_array($qLama);
+									$qMC = sqlsrv_query($con, "SELECT a.ket_status,
+																	CASE 
+																		WHEN DATEDIFF(DAY, a.tgl_delivery, GETDATE()) > 0 THEN 'Urgent'
+																		WHEN DATEDIFF(DAY, a.tgl_delivery, GETDATE()) > -4 THEN 'Potensi Delay'
+																		ELSE ''
+																	END AS sts
+																FROM db_dying.tbl_schedule a
+																LEFT JOIN db_dying.tbl_montemp b ON a.id = b.id_schedule
+																WHERE a.no_mesin = '$mc'
+																AND (b.status = 'sedang jalan' OR a.status = 'antri mesin')
+																ORDER BY a.no_urut ASC;
+																");
+									$dMC = sqlsrv_fetch_array($qMC);
+									$qLama = sqlsrv_query($con, "select
+																		ROUND(DATEDIFF(HOUR, GETDATE(), b.tgl_target), 0) AS lama
+																	from
+																		db_dying.tbl_schedule a
+																	left join db_dying.tbl_montemp b on
+																		a.id = b.id_schedule
+																	where
+																		a.no_mesin = '$mc'
+																		and b.status = 'sedang jalan'
+																	order by
+																		a.no_urut asc");
+									$dLama = sqlsrv_fetch_array($qLama);
 
 									if ($dMC['ket_status'] == "Tolak Basah") {
 										if ($dLama['lama'] < "1" and $dLama['lama'] != "") {
@@ -276,46 +292,42 @@ include "koneksi.php";
 								{
 									include "koneksi.php";
 
-									$qLama = mysqli_query($con, "SELECT 
-															b.tgl_buat, 
-															a.target, 
-															DATE_ADD(
-																DATE_ADD(
-																	b.tgl_buat,
-																	INTERVAL FLOOR(a.target) HOUR
-																),
-																INTERVAL ROUND((a.target - FLOOR(a.target)) * 100) MINUTE
-															) AS tgl_buat_target,
-														TIME_FORMAT(
-																TIMEDIFF(
-																	GREATEST(NOW(), DATE_ADD(
-																		DATE_ADD(
-																			b.tgl_buat,
-																			INTERVAL FLOOR(a.target) HOUR
-																		),
-																		INTERVAL ROUND((a.target - FLOOR(a.target)) * 100) MINUTE
-																	)),
-																	LEAST(NOW(), DATE_ADD(
-																		DATE_ADD(
-																			b.tgl_buat,
-																			INTERVAL FLOOR(a.target) HOUR
-																		),
-																		INTERVAL ROUND((a.target - FLOOR(a.target)) * 100) MINUTE
-																	))
-																), '%H:%i') AS lama
-														FROM 
-															tbl_schedule a
-														LEFT JOIN 
-															tbl_montemp b 
-														ON 
-															a.id = b.id_schedule
-														WHERE 
-															a.no_mesin = '$mc' 
-															AND b.status = 'sedang jalan'
-														ORDER BY 
-															a.no_urut ASC 
-														LIMIT 1");
-									$dLama = mysqli_fetch_array($qLama);
+									$qLama = sqlsrv_query($con, "WITH TimeDetails AS (
+																	SELECT 
+																		b.tgl_buat, 
+																		a.target,
+																		DATEADD(
+																			MINUTE, 
+																			ROUND((a.target - FLOOR(a.target)) * 100, 0), 
+																			DATEADD(
+																				HOUR, 
+																				FLOOR(a.target), 
+																				b.tgl_buat
+																			)
+																		) AS tgl_buat_target
+																	FROM 
+																		db_dying.tbl_schedule a
+																	LEFT JOIN 
+																		db_dying.tbl_montemp b 
+																	ON 
+																		a.id = b.id_schedule
+																	WHERE 
+																		a.no_mesin = '1103'
+																		AND b.status = 'sedang jalan'
+																)
+																SELECT TOP 1
+																	t.tgl_buat, 
+																	t.target, 
+																	t.tgl_buat_target,
+																	FORMAT(
+																		ABS(DATEDIFF(MINUTE, GETDATE(), t.tgl_buat_target)),
+																		'hh\:mm'
+																	) AS lama
+																FROM 
+																	TimeDetails t
+																ORDER BY 
+																	t.target");
+									$dLama = sqlsrv_fetch_array($qLama);
 									if ($dLama['lama'] != '') {
 
 										echo $dLama['lama'];
@@ -325,8 +337,8 @@ include "koneksi.php";
 								}
 
 								/* Total Status Mesin */
-								$sqlStatus = mysqli_query($con, "SELECT no_mesin FROM tbl_mesin");
-								while ($rM = mysqli_fetch_array($sqlStatus)) {
+								$sqlStatus = sqlsrv_query($con, "SELECT no_mesin FROM db_dying.tbl_mesin");
+								while ($rM = sqlsrv_fetch_array($sqlStatus)) {
 									$sts = NoMesin($rM['no_mesin']);
 									if (
 										$sts == "btn-primary" or
@@ -540,17 +552,17 @@ include "koneksi.php";
 
 								$machinesByCapacity = array();
 
-								$result = mysqli_query($con, "SELECT DISTINCT kapasitas FROM tbl_mesin ORDER BY kapasitas DESC");
+								$result = sqlsrv_query($con, "SELECT DISTINCT kapasitas FROM db_dying.tbl_mesin ORDER BY kapasitas DESC");
 
-								while ($row = mysqli_fetch_assoc($result)) {
+								while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
 									$kapasitas = $row['kapasitas'];
 
 									$machinesByCapacity[$kapasitas] = array();
 								}
 
-								$dataMesin = mysqli_query($con, "SELECT no_mesin, kapasitas FROM tbl_mesin");
+								$dataMesin = sqlsrv_query($con, "SELECT no_mesin, kapasitas FROM db_dying.tbl_mesin");
 
-								while ($row = mysqli_fetch_assoc($dataMesin)) {
+								while ($row = sqlsrv_fetch_array($dataMesin, SQLSRV_FETCH_ASSOC)) {
 									$kapasitas = $row['kapasitas'];
 									$machinesByCapacity[$kapasitas][] = $row;
 								}
@@ -638,17 +650,17 @@ include "koneksi.php";
 								<?php
 								$machinesByCapacity = array();
 
-								$result = mysqli_query($con, "SELECT DISTINCT kapasitas FROM tbl_mesin ORDER BY kapasitas DESC");
+								$result = sqlsrv_query($con, "SELECT DISTINCT kapasitas FROM db_dying.tbl_mesin ORDER BY kapasitas DESC");
 
-								while ($row = mysqli_fetch_assoc($result)) {
+								while ($row = sqlsrv_fetch_array($result, SQLSRV_FETCH_ASSOC)) {
 									$kapasitas = $row['kapasitas'];
 
 									$machinesByCapacity[$kapasitas] = array();
 								}
 
-								$dataMesin = mysqli_query($con, "SELECT no_mesin, kapasitas FROM tbl_mesin");
+								$dataMesin = sqlsrv_query($con, "SELECT no_mesin, kapasitas FROM db_dying.tbl_mesin");
 
-								while ($row = mysqli_fetch_assoc($dataMesin)) {
+								while ($row = sqlsrv_fetch_array($dataMesin, SQLSRV_FETCH_ASSOC)) {
 									$kapasitas = $row['kapasitas'];
 									$machinesByCapacity[$kapasitas][] = $row;
 								}
@@ -725,8 +737,8 @@ include "koneksi.php";
 
 					<marquee class="teks-berjalan" behavior="scroll" direction="left" onmouseover="this.stop();" onmouseout="this.start();">
 						<?php
-						$news = mysqli_query($con, "SELECT GROUP_CONCAT(news_line SEPARATOR ' :: ') as news_line FROM tbl_news_line WHERE gedung='LT 1' AND status='Tampil'");
-						$rNews = mysqli_fetch_array($news);
+						$news = sqlsrv_query($con, "SELECT STRING_AGG(news_line, ' :: ') as news_line FROM db_dying.tbl_news_line WHERE gedung='LT 1' AND status='Tampil'");
+						$rNews = sqlsrv_fetch_array($news);
 						$totMesin = '0';
 						?>
 						<?php echo $rNews['news_line']; ?>
