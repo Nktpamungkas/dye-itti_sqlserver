@@ -93,7 +93,7 @@ if (date("H:i:s") >= "23:00:00" && date("H:i:s") <= "06:59:59") {
 				$sqJam1 = sqlsrv_query($con, "SELECT CONVERT(date, GETDATE()) AS tgl ");
 				$rJam1 = sqlsrv_fetch_array($sqJam1);
 			} else {
-				$sqJam1 = sqlsrv_query($con, "SELECT CONVERT(VARCHAR(10), DATEADD(DAY, -1, GETDATE()), 23) AS tgl");
+				$sqJam1 = sqlsrv_query($con, "SELECT CONVERT(date, DATEADD(DAY, -1, GETDATE()), 23) AS tgl");
 				$rJam1 = sqlsrv_fetch_array($sqJam1);
 			}
 			?>
@@ -281,7 +281,7 @@ if (date("H:i:s") >= "23:00:00" && date("H:i:s") <= "06:59:59") {
 				$sqJam2 = sqlsrv_query($con, "SELECT CONVERT(date, GETDATE()) AS tgl ");
 				$rJam2 = sqlsrv_fetch_array($sqJam2);
 			} else {
-				$sqJam2 = sqlsrv_query($con, "SELECT CONVERT(VARCHAR(10), DATEADD(DAY, -1, GETDATE()), 23) AS tgl");
+				$sqJam2 = sqlsrv_query($con, "SELECT CONVERT(date, DATEADD(DAY, -1, GETDATE()), 23) AS tgl");
 				$rJam2 = sqlsrv_fetch_array($sqJam2);
 			} ?>
 			<div class="box-body table-responsive">
@@ -448,7 +448,7 @@ if (date("H:i:s") >= "23:00:00" && date("H:i:s") <= "06:59:59") {
 					sqlsrv_fetch_array($sqJam3);
 			} else {
 				$sqJam3 =
-					sqlsrv_query($con, "SELECT CONVERT(VARCHAR(10), DATEADD(DAY, -1, GETDATE()), 23) AS tgl");
+					sqlsrv_query($con, "SELECT CONVERT(date, DATEADD(DAY, -1, GETDATE()), 23) AS tgl");
 				$rJam3 =
 					sqlsrv_fetch_array($sqJam3);
 			}
