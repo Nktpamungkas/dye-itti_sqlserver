@@ -1,7 +1,7 @@
 <?php
-    ini_set("error_reporting", 1);
-    session_start();
-    include("../koneksi.php");
+ini_set("error_reporting", 1);
+session_start();
+include("../koneksi.php");
 ?>
 <?php $no_mc = $_GET['id']; ?>
 <div class="modal-dialog modal-lg" style="width: 95%">
@@ -39,37 +39,41 @@
                             $where = " ";
                             $where1 = " ";
                         } else {
-                            // $where = "AND NOT a.no_urut='1'";
                             $where = " ";
                             $where1 = " WHERE not no_urut='1' ";
                         }
 
-                        $qry = mysqli_query($con, "SELECT
-                                                        *,
-                                                        IF(DATEDIFF( now(), tgl_delivery ) > 0, 'Urgent',
-                                                        IF(DATEDIFF( now(), tgl_delivery ) > - 4, 'Potensi Delay', '' )) AS `sts` 
-                                                    FROM
-                                                        tbl_schedule a
-                                                    WHERE a.no_mesin='" . $_GET['id'] . "' AND NOT `status` = 'selesai' $where 
-                                                    ORDER BY a.no_urut ASC");
+                        $qry = sqlsrv_query($con, "SELECT
+                                                    *,
+                                                    CASE
+                                                        WHEN DATEDIFF(DAY, GETDATE(), tgl_delivery) > 0 THEN 'Urgent'
+                                                        WHEN DATEDIFF(DAY, GETDATE(), tgl_delivery) > -4 THEN 'Potensi Delay'
+                                                        ELSE ''
+                                                    END AS sts
+                                                FROM
+                                                    db_dying.tbl_schedule a
+                                                WHERE
+                                                    a.no_mesin = '" . $_GET['id'] . "' AND NOT [status] = 'selesai' $where
+                                                ORDER BY
+                                                    a.no_urut ASC");
                         $no = 1;
 
                         $c = 0;
-                        while ($rowd = mysqli_fetch_array($qry)) {
+                        while ($rowd = sqlsrv_fetch_array($qry)) {
                             $bgcolor = ($c++ & 1) ? '#33CCFF' : '#FFCC99';
                         ?>
                             <tr>
                                 <td>
-                                    <?php if($rowd['no_urut'] == '1' && !($_GET['id'] == 'CB11') && !($_GET['id'] == 'WS11')) : ?>
+                                    <?php if ($rowd['no_urut'] == '1' && !($_GET['id'] == 'CB11') && !($_GET['id'] == 'WS11')) : ?>
                                         <?= $rowd['no_urut']; ?>
                                         <input type="hidden" class="form-control col-sm-2" value="<?= $rowd['no_urut']; ?>" name="no_urut[<?php echo $rowd['id']; ?>]" readonly>
                                     <?php else : ?>
-                                        <select name="no_urut[<?php echo $rowd['id']; ?>]" class="form-control" >
+                                        <select name="no_urut[<?php echo $rowd['id']; ?>]" class="form-control">
                                             <option value="">Pilih</option>
                                             <?php
-                                                $sqlKap = mysqli_query($con, "SELECT no_urut FROM tbl_urut $where1 ORDER BY no_urut ASC");
+                                            $sqlKap = sqlsrv_query($con, "SELECT no_urut FROM db_dying.tbl_urut $where1 ORDER BY no_urut ASC");
                                             ?>
-                                            <?php while ($rK = mysqli_fetch_array($sqlKap)) { ?>
+                                            <?php while ($rK = sqlsrv_fetch_array($sqlKap)) { ?>
                                                 <option value="<?php echo $rK['no_urut']; ?>" <?php if ($rK['no_urut'] == $rowd['no_urut']) {
                                                                                                     echo "SELECTED";
                                                                                                 } ?>><?php echo $rK['no_urut']; ?></option>
@@ -80,11 +84,11 @@
                                 <td>
                                     <div class="col-md-12">
                                         <div class="input-group">
-                                        <?php if ($_SESSION['lvl_id10'] == "5") : ?>
-                                            <?php $typetext = ""; ?>
-                                        <?php else : ?>
-                                            <?php $typetext = "readonly"; ?>
-                                        <?php endif; ?>
+                                            <?php if ($_SESSION['lvl_id10'] == "5") : ?>
+                                                <?php $typetext = ""; ?>
+                                            <?php else : ?>
+                                                <?php $typetext = "readonly"; ?>
+                                            <?php endif; ?>
                                             <input name="target[<?php echo $rowd['id']; ?>]" type="Texxt" <?= $typetext; ?> class="form-control" value="<?= $rowd['target']; ?>" placeholder="0" style="text-align: right;">
                                             <span class="input-group-addon">Jam</span>
                                             <span class="help-block with-errors"></span>
@@ -104,16 +108,16 @@
                                 <td><?= $rowd['warna']; ?></td>
                                 <td><?= $rowd['proses']; ?></td>
                                 <td>
-                                    <?php echo $rowd['tgl_delivery']; ?>
+                                    <?php echo $rowd['tgl_delivery'] != null or $rowd['tgl_delivery'] != '' ? $rowd['tgl_delivery']->format('Y-m-d H:i:s') : ''; ?>
                                 </td>
                                 <td bgcolor="<?= $bg; ?>">
                                     <?php echo $rowd['ket_status']; ?>
                                     <br>
                                     <span class="label <?php if ($rowd['status'] == "sedang jalan") {
-                                                                                    echo "label-success";
-                                                                                } else {
-                                                                                    echo "label-warning";
-                                                                                } ?>"><?php echo $rowd['status']; ?></span>
+                                                            echo "label-success";
+                                                        } else {
+                                                            echo "label-warning";
+                                                        } ?>"><?php echo $rowd['status']; ?></span>
                                 </td>
                                 <td bgcolor="<?php if ($rowd['sts'] == "Potensi Delay") {
                                                     echo " orange";
@@ -125,7 +129,8 @@
                                     } ?>
                                 </td>
                             </tr>
-                        <?php $no++; } ?>
+                        <?php $no++;
+                        } ?>
                     </tbody>
                 </table>
             </div>

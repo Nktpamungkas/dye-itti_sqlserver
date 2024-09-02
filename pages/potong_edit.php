@@ -3,8 +3,8 @@ ini_set("error_reporting", 1);
 session_start();
 include("../koneksi.php");
     $modal_id=$_GET['id'];
-	$modal=mysqli_query($con,"SELECT * FROM `tbl_potongcelup` WHERE id='$modal_id' ");
-while($r=mysqli_fetch_array($modal)){
+	$modal=sqlsrv_query($con,"SELECT * FROM db_dying.tbl_potongcelup WHERE id='$modal_id' ");
+while($r=sqlsrv_fetch_array($modal)){
 ?>
 <script>
 	function aktif(){
@@ -66,8 +66,8 @@ while($r=mysqli_fetch_array($modal)){
 							  	<option value="">Pilih</option>
 					  			<option value="-">-</option>
 							  <?php 
-							  $sqlKap=mysqli_query($con,"SELECT nama FROM tbl_staff WHERE jabatan='SPV' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
-							  while($rK=mysqli_fetch_array($sqlKap)){
+							  $sqlKap=sqlsrv_query($con,"SELECT nama FROM db_dying.tbl_staff WHERE jabatan='SPV' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
+							  while($rK=sqlsrv_fetch_array($sqlKap)){
 							  ?>
 								  <option value="<?php echo $rK['nama']; ?>"><?php echo $rK['nama']; ?></option>
 							 <?php } ?>	  

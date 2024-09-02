@@ -4,11 +4,11 @@ session_start();
 include("../koneksi.php");
 if($_POST){ 
 	extract($_POST);
-	$id 	= mysqli_real_escape_string($con,$_POST['id']);
-	$shift 	= mysqli_real_escape_string($con,$_POST['shift']); 
-				$sqlupdate=mysqli_query($con,"UPDATE `tbl_montemp` SET 
-				`g_shift`='$shift'
-				WHERE `id`='$id' LIMIT 1");
+	$id 	= $_POST['id'];
+	$shift 	= $_POST['shift']; 
+				$sqlupdate=sqlsrv_query($con,"UPDATE db_dying.tbl_montemp SET 
+				[g_shift]='$shift'
+				WHERE [id]='$id'");
 				echo " <script>window.location='?p=Monitoring-Tempelan';</script>";
 						
 		}

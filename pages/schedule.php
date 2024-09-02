@@ -1,7 +1,7 @@
 <?PHP
-	ini_set("error_reporting", 1);
-	session_start();
-	include "koneksi.php";
+ini_set("error_reporting", 1);
+session_start();
+include "koneksi.php";
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -20,9 +20,11 @@
 		0% {
 			visibility: hidden;
 		}
+
 		50% {
 			visibility: hidden;
 		}
+
 		100% {
 			visibility: visible;
 		}
@@ -31,11 +33,11 @@
 
 <body>
 	<?php
-	$data = mysqli_query($con, "SELECT
+	$data = sqlsrv_query($con, "SELECT 
 										id,
-										GROUP_CONCAT( lot SEPARATOR '/' ) AS lot,
-										if(COUNT(lot)>1,'Gabung Kartu','') as ket_kartu,
-										if(COUNT(lot)>1,CONCAT('(',COUNT(lot),'kk',')'),'') as kk,
+										STRING_AGG( lot, '/' ) AS lot,
+										CASE WHEN COUNT(lot) > 1 THEN 'Gabung Kartu' ELSE '' END AS ket_kartu,
+										CASE WHEN COUNT(lot) > 1 THEN CONCAT('(', CAST(COUNT(lot) AS VARCHAR), 'kk', ')') ELSE '' END AS kk,
 										no_mesin,
 										no_urut,
 										nodemand,
@@ -49,8 +51,8 @@
 										jenis_kain,
 										warna,
 										no_warna,
-										sum(rol) as rol,
-										sum(bruto) as bruto,
+										SUM(rol) AS rol,
+										SUM(bruto) AS bruto,
 										proses,
 										ket_status,
 										ket_kain,
@@ -59,12 +61,32 @@
 										suffix2,
 										high_temp
 									FROM
-										tbl_schedule 
+										db_dying.tbl_schedule 
 									WHERE
-										`status` = 'antri mesin' or `status` = 'sedang jalan' 
+										status = 'antri mesin' OR status = 'sedang jalan' 
 									GROUP BY
+										id,
 										no_mesin,
-										no_urut 
+										no_urut,
+										nodemand,
+										nodemand,
+										buyer,
+										langganan,
+										no_order,
+										no_item,
+										no_hanger,
+										no_resep,
+										nokk,
+										jenis_kain,
+										warna,
+										no_warna,
+										proses,
+										ket_status,
+										ket_kain,
+										tgl_delivery,
+										suffix,
+										suffix2,
+										high_temp
 									ORDER BY
 										no_mesin ASC,no_urut ASC");
 	$no = 1;
@@ -78,10 +100,7 @@
 					<a href="?p=Form-Schedule" class="btn btn-success <?php if ($_SESSION['lvl_id10'] == "3") {
 																			echo "disabled";
 																		} ?>"><i class="fa fa-plus-circle"></i> Tambah</a>
-					<!--	
-						<a href="?p=Form-Schedule-Manual" class="btn btn-warning"><i class="fa fa-plus-circle"></i> Tambah Manual</a>
-						<a href="pages/cetak/cetak_schedule.php" class="btn btn-danger pull-right" target="_blank"><i class="fa fa-print"></i> Cetak</a>	
-					-->
+
 					<a href="#" data-toggle="modal" data-target="#PrintHalaman" class="btn btn-danger pull-right"><i class="fa fa-print"></i> Cetak</a>
 				</div>
 				<div class="box-body">
@@ -146,11 +165,11 @@
 						</thead>
 						<tbody>
 							<?php
-								$col = 0;
-								while ($rowd = mysqli_fetch_array($data)) {
-									$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
-									$qCek = mysqli_query($con, "SELECT id as idb FROM tbl_montemp WHERE id_schedule='$rowd[id]' LIMIT 1");
-									$rCEk = mysqli_fetch_array($qCek);
+							$col = 0;
+							while ($rowd = sqlsrv_fetch_array($data)) {
+								$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
+								$qCek = sqlsrv_query($con, "SELECT id AS idb FROM db_dying.tbl_montemp WHERE id_schedule='$rowd[id]'");
+								$rCEk = sqlsrv_fetch_array($qCek);
 							?>
 								<tr bgcolor="<?php echo $bgcolor; ?>">
 									<td align="center"><a href="#" id='<?php echo $rowd['no_mesin']; ?>' class="edit_status_mesin <?php if ($_SESSION['lvl_id10'] == "3") {
@@ -167,15 +186,17 @@
 									<td align="center"><?= $rowd['suffix']; ?></td>
 									<td align="center"><?= $rowd['suffix2']; ?></td>
 									<td align="center"><a href="#"><?php echo $rowd['lot']; ?></a></td>
-									<td align="center"><?php echo $rowd['tgl_delivery']; ?></td>
+									<td align="center"><?php echo $rowd['tgl_delivery'] != null or $rowd['tgl_delivery'] != '' ? $rowd['tgl_delivery']->format('Y-m-d') : ''; ?></td>
 									<td align="center"><?php echo $rowd['rol'] . $rowd['kk']; ?></td>
 									<td align="center"><?php echo $rowd['bruto']; ?></td>
 									<td>
 										<?php echo $rowd['proses']; ?><br>
-										<?php if($rowd['high_temp'] == 1){ echo "<blink style='color: red;'><b>High Temperature</b></blink>"; } ?>
+										<?php if ($rowd['high_temp'] == 1) {
+											echo "<blink style='color: red;'><b>High Temperature</b></blink>";
+										} ?>
 									</td>
 									<td>
-										<?php echo $rowd['ket_status']; ?>  - <?php echo $rowd['ket_kain']; ?><br>
+										<?php echo $rowd['ket_status']; ?> - <?php echo $rowd['ket_kain']; ?><br>
 										<i><?php echo $rowd['nokk']; ?></i><br>
 										<i><a href="#" id='<?php echo $rowd['id']; ?>' class="resep"><?php echo $rowd['no_resep']; ?></a></i><br>
 										<a href="#" id='<?php echo $rowd['id']; ?>' class="detail_kartu">
@@ -192,7 +213,7 @@
 																																							} ?>"><i class="fa fa-trash"></i> </a>
 											<a href="#" class="btn btn-warning btn-xs" onclick="confirm_selesai('?p=sch_selesai&id=<?php echo $rowd['id'] ?>');"><i class="fa fa-flag-checkered" data-toggle="tooltip" data-placement="top" title="Selesai"></i> </a>
 
-											<?php if($rowd['high_temp'] == 1) : ?>
+											<?php if ($rowd['high_temp'] == 1) : ?>
 												<a href="#" class="btn btn-primary btn-xs" onclick="delete_high_temp('?p=delete_high_temp&id=<?= $rowd['id'] ?>');"><i class="fa fa-exclamation-triangle" data-toggle="tooltip" data-placement="top" title="Delete High Temperature"></i></a>
 											<?php else : ?>
 												<a href="#" class="btn btn-danger btn-xs" onclick="confirm_high_temp('?p=high_temp&id=<?= $rowd['id'] ?>');"><i class="fa fa-exclamation-triangle" data-toggle="tooltip" data-placement="top" title="High Temperature"></i></a>
@@ -240,7 +261,7 @@
 						<a href="pages/cetak/cetak_schedule_p16.php" class="btn btn-info" target="_blank"><i class="fa fa-print"></i> Page 16</a>
 						<a href="pages/cetak/cetak_schedule_p17.php" class="btn btn-info" target="_blank"><i class="fa fa-print"></i> Page 17</a><br><br>
 						<!-- <a href="pages/cetak/cetak_schedule.php" class="btn btn-warning" target="_blank"><i class="fa fa-print"></i> All Page</a>  -->
-						<a href="http://10.0.5.178/dye-itti/pages/cetak/cetak_schedule.php" class="btn btn-warning" target="_blank"><i class="fa fa-print"></i> All Page</a> 
+						<a href="http://10.0.5.178/dye-itti/pages/cetak/cetak_schedule.php" class="btn btn-warning" target="_blank"><i class="fa fa-print"></i> All Page</a>
 						<a href="pages/cetak/schedule-celup-excel.php" class="btn btn-success" target="_blank"><i class="fa fa-file-excel-o"></i> All Page Excel</a>
 					</div>
 					<div class="modal-footer">
@@ -285,7 +306,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<!-- Modal Popup untuk High Temperature-->
 	<div class="modal fade" id="HighTemperature" tabindex="-1">
 		<div class="modal-dialog modal-sm">
@@ -302,7 +323,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 	<!-- Modal Popup untuk Delete High Temperature-->
 	<div class="modal fade" id="DeleteHighTemperature" tabindex="-1">
 		<div class="modal-dialog modal-sm">
@@ -345,14 +366,14 @@
 		});
 		document.getElementById('selesai_link').setAttribute('href', selesai_url);
 	}
-	
+
 	function confirm_high_temp(selesai_url) {
 		$('#HighTemperature').modal('show', {
 			backdrop: 'static'
 		});
 		document.getElementById('yes_high_temp').setAttribute('href', selesai_url);
 	}
-	
+
 	function delete_high_temp(selesai_url) {
 		$('#DeleteHighTemperature').modal('show', {
 			backdrop: 'static'

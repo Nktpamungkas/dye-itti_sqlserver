@@ -3,8 +3,8 @@ ini_set("error_reporting", 1);
 session_start();
 include("../koneksi.php");
 $modal_id = $_GET['id'];
-$modal = mysqli_query($con, "SELECT * FROM `tbl_schedule` WHERE id='$modal_id' ");
-while ($r = mysqli_fetch_array($modal)) {
+$modal = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_schedule WHERE id='$modal_id' ");
+while ($r = sqlsrv_fetch_array($modal)) {
 ?>
 
 	<div class="modal-dialog modal1">
@@ -18,7 +18,6 @@ while ($r = mysqli_fetch_array($modal)) {
 				<div class="modal-body">
 					<input type="hidden" id="id" name="id" value="<?php echo $r['id']; ?>">
 					<input type="hidden" id="personil" name="personil" value="<?php echo $_SESSION['nama10']; ?>">
-					<input type="hidden" id="userid" name="userid" value="<?php echo $_SESSION['user_id10'];?>">
 					<div class="form-group">
 						<label for="no_mesin" class="col-md-4 control-label">No Mesin</label>
 
@@ -26,8 +25,8 @@ while ($r = mysqli_fetch_array($modal)) {
 							<select name="no_mesin" class="form-control">
 								<option value="">Pilih</option>
 								<?php
-								$sqlKap = mysqli_query($con, "SELECT no_mesin FROM tbl_mesin ORDER BY no_mesin ASC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
+								$sqlKap = sqlsrv_query($con, "SELECT no_mesin FROM db_dying.tbl_mesin ORDER BY no_mesin ASC");
+								while ($rK = sqlsrv_fetch_array($sqlKap)) {
 								?>
 									<option value="<?php echo $rK['no_mesin']; ?>" <?php if ($rK['no_mesin'] == $r['no_mesin']) {
 																						echo "SELECTED";
@@ -43,8 +42,8 @@ while ($r = mysqli_fetch_array($modal)) {
 							<select name="no_urut" class="form-control">
 								<option value="">Pilih</option>
 								<?php
-								$sqlKap = mysqli_query($con, "SELECT no_urut FROM tbl_urut ORDER BY no_urut ASC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
+								$sqlKap = sqlsrv_query($con, "SELECT no_urut FROM db_dying.tbl_urut ORDER BY no_urut ASC");
+								while ($rK = sqlsrv_fetch_array($sqlKap)) {
 								?>
 									<option value="<?php echo $rK['no_urut']; ?>" <?php if ($rK['no_urut'] == $r['no_urut']) {
 																						echo "SELECTED";
@@ -60,8 +59,8 @@ while ($r = mysqli_fetch_array($modal)) {
 							<select name="proses" class="form-control">
 								<option value="">Pilih</option>
 								<?php
-								$sqlKap = mysqli_query($con, "SELECT proses FROM tbl_proses ORDER BY proses ASC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
+								$sqlKap = sqlsrv_query($con, "SELECT proses FROM db_dying.tbl_proses ORDER BY proses ASC");
+								while ($rK = sqlsrv_fetch_array($sqlKap)) {
 								?>
 									<option value="<?php echo $rK['proses']; ?>" <?php if ($rK['proses'] == $r['proses']) {
 																						echo "SELECTED";
@@ -185,8 +184,8 @@ while ($r = mysqli_fetch_array($modal)) {
 							<select name="mc_from" class="form-control" id="mc_from">
 								<option value="">Pilih</option>
 								<?php
-								$sqlKap = mysqli_query($con, "SELECT no_mesin FROM tbl_mesin ORDER BY no_mesin ASC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
+								$sqlKap = sqlsrv_query($con, "SELECT no_mesin FROM db_dying.tbl_mesin ORDER BY no_mesin ASC");
+								while ($rK = sqlsrv_fetch_array($sqlKap)) {
 								?>
 									<option value="<?php echo $rK['no_mesin']; ?>" <?php if ($rK['no_mesin'] == $r['mc_from']) {
 																						echo "SELECTED";
@@ -194,7 +193,7 @@ while ($r = mysqli_fetch_array($modal)) {
 								<?php } ?>
 							</select>
 							<span class="help-block with-errors"></span>
-						</div>						
+						</div>
 					</div>
 					<div class="form-group">
 						<label for="jml_bruto" class="col-md-4 control-label">&nbsp;</label>
@@ -306,18 +305,4 @@ while ($r = mysqli_fetch_array($modal)) {
 			document.modal_popup.kk_kestabilan.removeAttribute("disabled");
 		}
 	}
-	// function aktif2(){
-	// 	if(document.forms['modal_popup']['kk_kestabilan'].checked==true){
-	// 	$("#kk_normal").css("display", "");  // To unhide
-	// 	}else{
-	// 		$("#kk_normal").css("display", "none");  // To hide
-	// 	}
-	// }
-	// function aktif3(){
-	// 	if(document.forms['modal_popup']['kk_normal'].checked==true){
-	// 	$("#kk_kestabilan").css("display", "");  // To unhide
-	// 	}else{
-	// 		$("#kk_kestabilan").css("display", "none");  // To hide
-	// 	}
-	// }
 </script>

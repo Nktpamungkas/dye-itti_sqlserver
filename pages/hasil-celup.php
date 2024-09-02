@@ -14,15 +14,17 @@ include "koneksi.php";
 
 <body>
 	<?php
+		$nowdate = date('Y-m-d');
 		$tgl1	= $_POST['tgl1'];
 		$tgl2	= $_POST['tgl2'];
-
+		
 		if($tgl1 && $tgl2){
-			$_sortTgl = "DATE_FORMAT( a.tgl_buat, '%Y-%m-%d' ) BETWEEN '$tgl1' AND '$tgl2'";
+			$_sortTgl = "CAST(a.tgl_buat as DATE) BETWEEN '$tgl1' AND '$tgl2'";
 		}else{
-			$_sortTgl = "DATE_FORMAT( a.tgl_buat, '%Y-%m-%d' ) = DATE_FORMAT( now( ), '%Y-%m-%d' ) ";
+			$_sortTgl = "CAST(a.tgl_buat as DATE) = '$nowdate' ";
 		}
-		$data = mysqli_query($con, "SELECT
+	print_r($_sortTgl);
+		$data = sqlsrv_query($con, "SELECT
 										a.*,
 										b.buyer,
 										b.nodemand,
@@ -36,9 +38,9 @@ include "koneksi.php";
 										b.id as idm,
 										a.rcode as rcode_hasilcelup
 									FROM
-										tbl_hasilcelup a
-										LEFT JOIN tbl_montemp c ON a.id_montemp=c.id
-										LEFT JOIN tbl_schedule b ON c.id_schedule = b.id
+										db_dying.tbl_hasilcelup a
+										LEFT JOIN db_dying.tbl_montemp c ON a.id_montemp=c.id
+										LEFT JOIN db_dying.tbl_schedule b ON c.id_schedule = b.id
 									WHERE
 										$_sortTgl
 									ORDER BY
@@ -153,10 +155,10 @@ include "koneksi.php";
 									return $waktu;
 								}
 								$col = 0;
-								while ($rowd = mysqli_fetch_array($data)) {
+								while ($rowd = sqlsrv_fetch_array($data)) {
 									$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
-									$qCek = mysqli_query($con, "SELECT id as idb FROM tbl_potongcelup WHERE nokk='$rowd[nokk]' ORDER BY id DESC LIMIT 1");
-									$rCEk = mysqli_fetch_array($qCek);
+									$qCek = sqlsrv_query($con, "SELECT TOP 1 id as idb FROM db_dying.tbl_potongcelup WHERE nokk='$rowd[nokk]' ORDER BY id DESC ");
+									$rCEk = sqlsrv_fetch_array($qCek);
 							?>
 								<tr bgcolor="<?php echo $bgcolor; ?>">
 									<td align="center">
