@@ -1,23 +1,47 @@
 <?php
-ini_set("error_reporting", 1);
+// ini_set("error_reporting", 1);
 session_start();
-include"koneksi.php";
+include "koneksi.php";
+
+function cek($value) {
+	if($value == NULL || $value == "") {
+		return NULL;
+	}
+
+	if($value instanceof DateTime) {
+		if($value->format('Y-m-d') != '1900-01-01') {
+			return $value->format('Y-m-d');
+		} else {
+			return NULL;
+		}
+	}
+
+	if($value == '1900-01-01') {
+		return NULL;
+	}
+
+	if($value == '.00') {
+		return NULL;
+	}
+
+	return $value;
+}
+
 $nokk=$_GET['nokk'];
 $TglMasuk	= isset($_POST['tglmsk']) ? $_POST['tglmsk'] : '';
-$sqlCek=mysqli_query($con,"SELECT
+$sqlCek=sqlsrv_query($con,"SELECT TOP 1
 	a.*,b.id as idm 
 FROM
-	tbl_schedule a
-INNER JOIN tbl_montemp b ON a.id=b.id_schedule	
+	db_dying.tbl_schedule a
+INNER JOIN db_dying.tbl_montemp b ON a.id=b.id_schedule	
 WHERE
 	a.nokk = '$nokk' 
 ORDER BY
-	a.id DESC 
-	LIMIT 1");
-$cek=mysqli_num_rows($sqlCek);
-$rcek=mysqli_fetch_array($sqlCek);
-$qryCek =mysqli_query($con,"SELECT * FROM tbl_hasilcelup WHERE nokk='$nokk' ORDER BY id DESC Limit 1");
-$rdata=mysqli_fetch_array($qryCek);
+	a.id DESC ", array(), array( "Scrollable" => SQLSRV_CURSOR_KEYSET ));
+$cek=sqlsrv_num_rows($sqlCek);
+$rcek=sqlsrv_fetch_array($sqlCek);
+$qryCek =sqlsrv_query($con,"SELECT TOP 1 * FROM db_dying.tbl_hasilcelup WHERE nokk='$nokk' ORDER BY id DESC ");
+$rdata=sqlsrv_fetch_array($qryCek);
 ?>
 <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" name="form1">
  <div class="box box-info">
@@ -89,7 +113,7 @@ $rdata=mysqli_fetch_array($qryCek);
         <div class="col-sm-4">
           <div class="input-group date">
             <div class="input-group-addon"> <i class="fa fa-calendar"></i> </div>
-            <input name="tgl_delivery" type="text" disabled="disabled" required class="form-control pull-right" id="datepicker2" placeholder="0000-00-00" value="<?php if($cek>0){echo $rcek['tgl_delivery'];}else{if($r['RequiredDate']!=""){echo date('Y-m-d', strtotime($r['RequiredDate']));}}?>"/>
+            <input name="tgl_delivery" type="text" disabled="disabled" required class="form-control pull-right" id="datepicker2" placeholder="0000-00-00" value="<?php if($cek>0){echo cek($rcek['tgl_delivery']);}else{if($r['RequiredDate']!=""){echo date('Y-m-d', strtotime($r['RequiredDate']));}}?>"/>
           </div>
         </div>
 	  </div>
@@ -179,8 +203,8 @@ $rdata=mysqli_fetch_array($qryCek);
 						  <select name="no_mc" disabled="disabled" class="form-control">
 							  	<option value="">Pilih</option>
 							  <?php 
-							  $sqlKap=mysqli_query($con,"SELECT no_mesin FROM tbl_mesin WHERE kapasitas='$rcek[kapasitas]' ORDER BY no_mesin ASC");
-							  while($rK=mysqli_fetch_array($sqlKap)){
+							  $sqlKap=sqlsrv_query($con,"SELECT no_mesin FROM db_dying.tbl_mesin WHERE kapasitas='$rcek[kapasitas]' ORDER BY no_mesin ASC");
+							  while($rK=sqlsrv_fetch_array($sqlKap)){
 							  ?>
 						    <option value="<?php echo $rK['no_mesin']; ?>" <?php if($rcek['no_mesin']==$rK['no_mesin']){ echo "SELECTED"; }?> ><?php echo $rK['no_mesin']; ?></option>
 							 <?php } ?>	  
@@ -468,24 +492,36 @@ $rdata=mysqli_fetch_array($qryCek);
 </form>
 <?php 
 if($_POST['save']=="save"){	
-$qrySimpan= mysqli_query($con,"INSERT INTO tbl_masalah_celupan SET
-`id_hasilcelup`='$_POST[idhs]',
-`inspektor`='$_POST[inspektor]',
-`masalah`='$_POST[masalah]',
-`tidakan_perbaikan`='$_POST[perbaikan]',
-`tgl_buat`=now(),
-`tgl_update`=now()");
+
+	$sql = "INSERT INTO db_dying.tbl_masalah_celupan ( 	id_hasilcelup,
+														inspektor,
+														masalah,
+														tidakan_perbaikan,
+														tgl_buat,
+														tgl_update ) VALUES (?, ?, ?, ?, ?, ?)";
+	$data = [
+		cek($_POST['idhs']),
+		cek($_POST['inspektor']),
+		cek($_POST['masalah']),
+		cek($_POST['perbaikan']),
+		date('Y-m-d H:i:s'),
+		date('Y-m-d H:i:s'),
+	];
+
+	$qrySimpan= sqlsrv_query($con, $sql, $data);
+
 	if($qrySimpan){
-echo "<script>swal({
-  title: 'Data Telah DiSimpan',   
-  text: 'Klik Ok untuk input data kembali',
-  type: 'success',
-  }).then((result) => {
-  if (result.value) {
-    
-	 window.location.href='?p=Masalah-Celupan'; 
-  }
-});</script>";
+		echo "<script>
+		swal({
+			title: 'Data Telah DiSimpan',   
+			text: 'Klik Ok untuk input data kembali',
+			type: 'success',
+		}).then((result) => {
+			if (result.value) {
+				window.location.href='?p=Masalah-Celupan'; 
+			}
+		});
+		</script>";
 	}
 }
 ?>
