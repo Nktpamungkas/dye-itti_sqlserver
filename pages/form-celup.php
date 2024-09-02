@@ -2166,20 +2166,20 @@ if ($_POST['save'] == "save") {
 	if ($result === false) {
 		die(print_r(sqlsrv_errors(), true));
 	}
-	echo "<script>swal({
-					title: 'Data Tersimpan',   
-					text: 'Klik Ok untuk input data kembali',
-					type: 'success',
-					allowOutsideClick: false, 
-            		allowEscapeKey: false,
-					}).then((result) => {
-					if (result.value) {
+	// echo "<script>swal({
+	// 				title: 'Data Tersimpan',   
+	// 				text: 'Klik Ok untuk input data kembali',
+	// 				type: 'success',
+	// 				allowOutsideClick: false, 
+    //         		allowEscapeKey: false,
+	// 				}).then((result) => {
+	// 				if (result.value) {
 						
-						window.location.href='?p=Monitoring-Tempelan'; 
-					}
-					});</script>";
+	// 					window.location.href='?p=Monitoring-Tempelan'; 
+	// 				}
+	// 				});</script>";
 
-	if ($sqlData) {
+	if ($stmt) {
 		/* awal form potong */
 		$sqlCekP = sqlsrv_query($con, "SELECT TOP 1 a.*,c.k_resep,c.acc_keluar,c.operator_keluar,c.shift as shift_keluar,c.g_shift as g_shift_keluar,c.id as idcelup from db_dying.tbl_schedule a
 											INNER JOIN db_dying.tbl_montemp b ON a.id=b.id_schedule
@@ -2192,20 +2192,20 @@ if ($_POST['save'] == "save") {
 			g_shift,
 			operator,
 			tgl_buat,
-			tgl_update) VALUES('" . $rcekP['idcelup'] . "',
+			tgl_update) VALUES ('" . $rcekP['idcelup'] . "',
 			'" . $_POST['nokk'] . "',
 			'" . $_POST['shift'] . "',
 			'" . $_POST['g_shift'] . "',
 			'" . $_POST['operator_potong'] . "',
 			GETDATE(),
-			GETDATE()) ");
+			GETDATE())");
 		/* akhir form potong */
 		$sqlMonT = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_montemp WHERE id='" . $_POST['id'] . "'");
 		$rMonT = sqlsrv_fetch_array($sqlMonT);
 		$sqlD = sqlsrv_query($con, "UPDATE db_dying.tbl_schedule SET 
 			[status]='selesai',
 			tgl_update=GETDATE()
-			WHERE no_mesin = '" . $rcek['no_mesin'] . "' and no_urut='1' and `status`='sedang jalan' ");
+			WHERE no_mesin = '" . $rcek['no_mesin'] . "' and no_urut='1' and [status]='sedang jalan' ");
 		$sqlDT = sqlsrv_query($con, "UPDATE db_dying.tbl_montemp SET 
 			[status]='selesai',
 			tgl_update=GETDATE()
@@ -2222,6 +2222,17 @@ if ($_POST['save'] == "save") {
 				if (result.value) {
 					
 					window.location.href='?p=Hasil-Celup'; 
+				}
+				});</script>";
+	}else{
+		echo "<script>swal({
+				title: 'Gagal Menyimpan',   
+				text: print_r(sqlsrv_errors()),
+				type: 'failed',
+				}).then((result) => {
+				if (result.value) {
+					
+					window.location.href='?p=form-Celup'; 
 				}
 				});</script>";
 	}

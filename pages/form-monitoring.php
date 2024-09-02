@@ -18,8 +18,17 @@ $sqlCekWaktu = sqlsrv_query($con, "SELECT TOP 1 th.operator_keluar, th.tgl_buat 
 	WHERE ts.no_mesin ='" . $rcek['no_mesin'] . "'
 	ORDER BY th.id DESC");
 $rcekW = sqlsrv_fetch_array($sqlCekWaktu);
-$awalP = $rcekW['jam_stop']->format('H:i:s');
-$akhirP = $rcekW['jam_start']->format('H:i:s');
+if($rcekW['jam_stop']!= NULL or $rcekW['jam_stop']!=''){
+	$awalP = $rcekW['jam_stop']->format('H:i:s');	
+}else{
+	$awalP = NULL;
+}
+if ($rcekW['jam_stop'] != NULL or $rcekW['jam_stop'] != '') {
+	$akhirP = $rcekW['jam_start']->format('H:i:s');
+} else {
+	$akhirP = NULL;
+}
+// $awalP = $rcekW['jam_stop']->format('H:i:s');
 $diffP = $akhirP - $awalP;
 $tjamP = round($diffP / (60 * 60), 2);
 
@@ -1149,10 +1158,17 @@ if ($_POST['save'] == "save") {
 											WHERE ts.no_mesin ='" . $_POST['no_mc'] . "'
 											ORDER BY th.id DESC");
 	$rcekW1 = sqlsrv_fetch_array($sqlCekWaktu1);
-	$awalP1 = $rcekW1['jam_stop']->format('H:i:s');
-	$akhirP1 = $rcekW1['jam_start']->format('H:i:s');
-	$diffP1 = ($akhirP1 - $awalP1);
-	$tjamP1 = round($diffP1 / (60 * 60), 2);
+	if(!empty($rcekW1['jam_stop']) && !empty($rcekW1['jam_start']) ){
+		$awalP1 = $rcekW1['jam_stop']->format('H:i:s');
+		$akhirP1 = $rcekW1['jam_start']->format('H:i:s');
+		$diffP1 = ($akhirP1 - $awalP1);
+		$tjamP1 = round($diffP1 / (60 * 60), 2);	
+	}else{
+		$awalP1 = NULL;
+		$akhirP1 = NULL;
+		$diffP1 = NULL;
+		$tjamP1 = NULL;
+	} 
 
 
 	// Retrieve and format POST data
@@ -1182,6 +1198,7 @@ if ($_POST['save'] == "save") {
 	} else {
 		$id = NULL;
 	}
+	var_dump($rcek['no_mesin']);
 	//Handling demand
 	if ($_POST['demand'] != NULL or $_POST['demand'] != '') {
 		$demand = $_POST['demand'];
@@ -1545,20 +1562,20 @@ if ($_POST['save'] == "save") {
 	if ($result === false) {
 		die(print_r(sqlsrv_errors(), true));
 	}
-	echo "<script>swal({
-					title: 'Data Tersimpan',   
-					text: 'Klik Ok untuk input data kembali',
-					type: 'success',
-					allowOutsideClick: false, 
-            		allowEscapeKey: false,
-					}).then((result) => {
-					if (result.value) {
+	// echo "<script>swal({
+	// 				title: 'Data Tersimpan',   
+	// 				text: 'Klik Ok untuk input data kembali',
+	// 				type: 'success',
+	// 				allowOutsideClick: false, 
+    //         		allowEscapeKey: false,
+	// 				}).then((result) => {
+	// 				if (result.value) {
 						
-						window.location.href='?p=Monitoring-Tempelan'; 
-					}
-					});</script>";
+	// 					window.location.href='?p=Monitoring-Tempelan'; 
+	// 				}
+	// 				});</script>";
 
-	if ($sqlData) {
+	if ($stmt) {
 		$sqlD = sqlsrv_query($con, "UPDATE db_dying.tbl_schedule SET 
 									[status]='sedang jalan',
 									tgl_update=GETDATE()
@@ -1575,7 +1592,22 @@ if ($_POST['save'] == "save") {
 						window.location.href='?p=Monitoring-Tempelan'; 
 					}
 					});</script>";
+	}else {
+		echo "<script>swal({
+					title: 'Gagal Menyimpan Data',   
+					text: print_r(sqlsrv_errors()),
+					type: 'error',
+					allowOutsideClick: false, 
+            		allowEscapeKey: false,
+					}).then((result) => {
+					if (result.value) {
+						
+						window.location.href='?p=Monitoring-Tempelan'; 
+					}
+					});</script>";
+
 	}
+	
 }
 if ($_POST['update'] == "update") {
 	$warna = str_replace("'", "''", $_POST['warna']);
