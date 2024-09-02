@@ -23,7 +23,7 @@ include "koneksi.php";
 		}else{
 			$_sortTgl = "CAST(a.tgl_buat as DATE) = '$nowdate' ";
 		}
-	print_r($_sortTgl);
+	// print_r($_sortTgl);
 		$data = sqlsrv_query($con, "SELECT
 										a.*,
 										b.buyer,

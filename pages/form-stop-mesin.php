@@ -106,15 +106,15 @@
 	}
 </script>
 <?php
-ini_set("error_reporting", 1);
+// ini_set("error_reporting", 1);
 session_start();
 include "koneksi.php";
 $today = date("Y-m-d");
 //Cari no_stop terakhir pada hari ini
-$sql = "SELECT max(no_stop) FROM tbl_stopmesin WHERE tgl_buat LIKE '$today%'";
-$query = mysqli_query($con, $sql) or die(mysqli_error());
+$sql = "SELECT max(no_stop) FROM db_dying.tbl_stopmesin WHERE tgl_buat LIKE '%$today%'";
+$query = sqlsrv_query($con, $sql) or die(sqlsrv_errors());
 
-$stopno = mysqli_fetch_array($query);
+$stopno = sqlsrv_fetch_array($query);
 
 if ($stopno) {
 	$nilai = substr($stopno[0], 8);
@@ -131,18 +131,17 @@ if ($stopno) {
 ?>
 <?php
 $nostop = $_GET['no_stop'];
-$sqlCek = mysqli_query($con, "SELECT
+$sqlCek = sqlsrv_query($con, "SELECT TOP 1
 	a.*,b.id as idm 
 FROM
-	tbl_schedule a
-INNER JOIN tbl_montemp b ON a.id=b.id_schedule	
+	db_dying.tbl_schedule a
+INNER JOIN db_dying.tbl_montemp b ON a.id=b.id_schedule	
 WHERE
 	a.nokk = '$nokk' 
 ORDER BY
-	a.id DESC 
-	LIMIT 1");
-$cek = mysqli_num_rows($sqlCek);
-$rcek = mysqli_fetch_array($sqlCek);
+	a.id DESC", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+$cek = sqlsrv_num_rows($sqlCek);
+$rcek = sqlsrv_fetch_array($sqlCek);
 ?>
 <?php
 $Kapasitas	= isset($_POST['kapasitas']) ? $_POST['kapasitas'] : '';
@@ -195,8 +194,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="kapasitas" onchange="window.location='?p=Form-Stop-Mesin&kap='+this.value" class="form-control">
 							<option value="">Pilih</option>
 							<?php
-								$sqlKap = mysqli_query($con, "SELECT kapasitas FROM tbl_mesin GROUP BY kapasitas ORDER BY kapasitas DESC");
-								while ($rK = mysqli_fetch_array($sqlKap)) {
+								$sqlKap = sqlsrv_query($con, "SELECT kapasitas FROM db_dying.tbl_mesin GROUP BY kapasitas ORDER BY kapasitas DESC");
+								while ($rK = sqlsrv_fetch_array($sqlKap)) {
 							?>
 								<option value="<?php echo $rK['kapasitas']; ?>" <?php if ($_GET['kap'] == $rK['kapasitas']) {
 																					echo "SELECTED";
@@ -212,8 +211,8 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 							<option value="">Pilih</option>
 							<?php if($_GET['kap']) : ?>
 								<?php
-									$sqlKap = mysqli_query($con, "SELECT no_mesin FROM tbl_mesin WHERE kapasitas='$_GET[kap]' ORDER BY no_mesin ASC");
-									while ($rK = mysqli_fetch_array($sqlKap)) {
+									$sqlKap = sqlsrv_query($con, "SELECT no_mesin FROM db_dying.tbl_mesin WHERE kapasitas='$_GET[kap]' ORDER BY no_mesin ASC");
+									while ($rK = sqlsrv_fetch_array($sqlKap)) {
 								?>
 									<option value="<?php echo $rK['no_mesin']; ?>"><?php echo $rK['no_mesin']; ?></option>
 								<?php } ?>	 
@@ -311,21 +310,106 @@ if ($_POST['save'] == "save") {
 	if ($_POST['kodesm'] != "") {
 		$jam_stop = " mulai='$mulai', selesai='$selesai', ";
 	} else {
-		$jam_stop = " ";
+		$jam_stop = NULL;
 	}
-	$sqlData = mysqli_query($con, "INSERT INTO tbl_stopmesin SET
-	  	no_stop='$_POST[no_stop]',
-		shift='$_POST[shift]',
-		g_shift='$_POST[g_shift]',
-		kapasitas='$_POST[kapasitas]',
-		no_mesin='$_POST[no_mesin]',
-		proses='$_POST[proses]',
-		kd_stopmc='$_POST[kodesm]',
-		$jam_stop 
-		keterangan='$ket',
-		tgl_buat=now(),
-		tgl_update=now()
-        ");
+	// Handling insert
+	if($_POST['no_stop']!=NULL or $_POST['no_stop']!=''){
+		$no_stop = $_POST['no_stop'];
+	}else{
+		$no_stop=NULL;
+	}
+	if ($_POST['shift'] != NULL or $_POST['shift'] != '') {
+		$shift = $_POST['shift'];
+	} else {
+		$shift = NULL;
+	}
+	if ($_POST['g_shift'] != NULL or $_POST['g_shift'] != '') {
+		$g_shift = $_POST['g_shift'];
+	} else {
+		$g_shift = NULL;
+	}
+	if ($_POST['kapasitas'] != NULL or $_POST['kapasitas'] != '') {
+		$kapasitas = $_POST['kapasitas'];
+	} else {
+		$kapasitas = NULL;
+	}
+	if ($_POST['no_mesin'] != NULL or $_POST['no_mesin'] != '') {
+		$no_mesin = $_POST['no_mesin'];
+	} else {
+		$no_mesin = NULL;
+	}
+	if ($_POST['proses'] != NULL or $_POST['proses'] != '') {
+		$proses = $_POST['proses'];
+	} else {
+		$proses = NULL;
+	}
+	if ($_POST['kodesm'] != NULL or $_POST['kodesm'] != '') {
+		$kodesm = $_POST['kodesm'];
+	} else {
+		$kodesm = NULL;
+	}
+	if (!empty($_POST['mulaism']) or !empty($_POST['waktu_mulai'])) {
+		$mulai = $_POST['mulaism'] . " " . $_POST['waktu_mulai'];
+	} else {
+		$mulai = NULL;
+	}
+	if (!empty($_POST['selesaism']) or !empty($_POST['waktu_stop'])) {
+		$selesai = $_POST['selesaism'] . " " . $_POST['waktu_stop'];
+	} else {
+		$selesai = NULL;
+	}
+	$tglToday=new DateTime();
+	$today=$tglToday->format('Y-m-d H:i:s');
+	$insertdata=[
+		$no_stop, 
+				$shift, 
+				$g_shift, 
+				$kapasitas, 
+				$no_mesin,
+				$proses,
+				$kodesm, 
+				$mulai, 
+				$selesai,
+				$ket,
+				$today,
+				$today
+			];
+	$sqlData = "INSERT INTO db_dying.tbl_stopmesin (
+		no_stop,
+		shift,
+		g_shift,
+		kapasitas,
+		no_mesin,
+		proses,
+		kd_stopmc,
+		mulai,
+		selesai, 
+		keterangan,
+		tgl_buat,
+		tgl_update) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)";
+
+	$stmt = sqlsrv_prepare($con, $sqlData, $insertdata);
+
+	if ($stmt === false) {
+		die(print_r(sqlsrv_errors(), true));
+	}
+	$result = sqlsrv_execute($stmt);
+
+	if ($result === false) {
+		die(print_r(sqlsrv_errors(), true));
+	}
+	echo "<script>swal({
+					title: 'Data Tersimpan',   
+					text: 'Klik Ok untuk input data kembali',
+					type: 'success',
+					allowOutsideClick: false, 
+            		allowEscapeKey: false,
+					}).then((result) => {
+					if (result.value) {
+						
+						window.location.href='?p=Monitoring-Tempelan'; 
+					}
+					});</script>";
 
 	if ($sqlData) {
 		echo "<script>swal({
