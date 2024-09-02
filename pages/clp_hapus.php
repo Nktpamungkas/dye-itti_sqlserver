@@ -7,7 +7,7 @@ include("../koneksi.php");
 	$r=sqlsrv_fetch_array($cek);
     $cek1=sqlsrv_query($con,"SELECT * FROM db_dying.tbl_montemp WHERE id='$r[id_montemp]' ");
 	$r1=sqlsrv_fetch_array($cek1);
-	$qCek=sqlsrv_query($con,"SELECT * FROM db_dying.tbl_schedule WHERE id='$r1[id_schedule]' LIMIT 1");
+	$qCek=sqlsrv_query($con,"SELECT TOP 1 * FROM db_dying.tbl_schedule WHERE id='$r1[id_schedule]'");
 	$rCek=sqlsrv_fetch_array($qCek);
     $modal1=sqlsrv_query($con,"DELETE FROM db_dying.tbl_hasilcelup WHERE id='$modal_id' ");
     if ($modal1) {

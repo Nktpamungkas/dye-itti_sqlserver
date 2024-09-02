@@ -181,7 +181,7 @@ while ($r = sqlsrv_fetch_array($modal)) {
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="id" name="id" value="<?php echo $r['id']; ?>">
-                    <input id="sisa_waktu" name="sisa_waktu" value="<?php echo $lama; ?>">
+                    <input type="hidden" id="sisa_waktu" name="sisa_waktu" value="<?php echo $lama; ?>">
 
                     <!-- KODE STOP MESIN 1 -->
                     <div class="hr-style">
@@ -205,7 +205,7 @@ while ($r = sqlsrv_fetch_array($modal)) {
                             <div class="input-group date">
                                 <div class="input-group-addon"> <i class="fa fa-calendar"></i> </div>
                                 <!-- <input name="tgl_stop" type="text" class="form-control pull-right" id="datepicker3" max="2023-11-21" placeholder="0000-00-00" value="<?php //echo ''; ?>" /> -->
-                                <!-- <input name="tgl_stop" type="date" class="form-control pull-right" max="<?= Date('Y-m-d'); ?>" placeholder="0000-00-00" value="<?php //echo $r['tglS']; ?>" /> -->
+                                <!-- <input name="tgl_stop" type="date" class="form-control pull-right" max="<?php //Date('Y-m-d'); ?>" placeholder="0000-00-00" value="<?php //echo $r['tglS']; ?>" /> -->
                                 <input name="tgl_stop" type="date" class="form-control pull-right"
                                     max="<?= Date('Y-m-d'); ?>" placeholder="0000-00-00" value="<?php echo $tglS; ?>" />
                             </div>

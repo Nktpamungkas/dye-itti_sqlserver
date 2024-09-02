@@ -153,7 +153,17 @@ if ($_POST) {
 											[sisa_waktu]='$sisa'
 											WHERE id='$id'");
 	if($sqlupdate){
-		echo " <script>window.location='?p=Monitoring-Tempelan';</script>";
+		echo "<script>swal({
+					title: 'Data Tersimpan',
+					type: 'success',
+					allowOutsideClick: false, 
+            		allowEscapeKey: false,
+					}).then((result) => {
+					if (result.value) {
+						
+						window.location.href='?p=Monitoring-Tempelan'; 
+					}
+					});</script>";
 	}else{
 		echo "UPDATE db_dying.tbl_montemp SET 
 		[ket_stopmesin]= '$_POST[ket_stopmesin]',
