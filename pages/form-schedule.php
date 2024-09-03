@@ -610,14 +610,14 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 				<div class="form-group">
 					<label for="l_g" class="col-sm-3 control-label">Lebar X Gramasi</label>
 					<div class="col-sm-2">
-						<input name="lebar" type="number" min="0" class="form-control" id="lebar" value="<?= $dt_lg['LEBAR']; ?><?php if ($cek > 0) {
+						<input name="lebar" type="text" min="0" class="form-control" id="lebar" value="<?= $dt_lg['LEBAR']; ?><?php if ($cek > 0) {
 																																	echo $rcek['lebar'];
 																																} else {
 																																	echo round($r['Lebar']);
 																																} ?>" placeholder="0" required>
 					</div>
 					<div class="col-sm-2">
-						<input name="grms" type="number" min="0" class="form-control" id="grms" value="<?= $dt_lg['GRAMASI']; ?><?php if ($cek > 0) {
+						<input name="grms" type="text" min="0" class="form-control" id="grms" value="<?= $dt_lg['GRAMASI']; ?><?php if ($cek > 0) {
 																																	echo $rcek['gramasi'];
 																																} else {
 																																	echo round($r['Gramasi']);
@@ -656,7 +656,7 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 					<label for="qty_order" class="col-sm-3 control-label">Qty Order</label>
 					<div class="col-sm-3">
 						<div class="input-group" lang="en">
-							<input name="qty1" type="number" min="0" class="form-control" id="qty1" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
+							<input name="qty1" type="text" min="0" class="form-control" id="qty1" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
 																																				echo $rcek['qty_order'];
 																																			} else {
 																																				echo round($r['BatchQuantity'], 2);
@@ -666,7 +666,7 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 					</div>
 					<div class="col-sm-4">
 						<div class="input-group">
-							<input name="qty2" type="number" min="0" class="form-control" id="qty2" value="<?= $dt_qtyorder['QTY_ORDER_YARD']; ?><?php if ($cek > 0) {
+							<input name="qty2" type="text" min="0" class="form-control" id="qty2" value="<?= $dt_qtyorder['QTY_ORDER_YARD']; ?><?php if ($cek > 0) {
 																																						echo $rcek['pjng_order'];
 																																					} else {
 																																						echo round($r['Quantity'], 2);
@@ -712,11 +712,11 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 							}
 						}
 						?>
-						<input name="qty3" type="number" min="0" class="form-control" id="qty3" value="<?= $roll;  ?>" placeholder="0.00" required>
+						<input name="qty3" type="text" min="0" class="form-control" id="qty3" value="<?= $roll;  ?>" placeholder="0.00" required>
 					</div>
 					<div class="col-sm-3">
 						<div class="input-group">
-							<input name="qty4" type="number" min="0" class="form-control" id="qty4" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
+							<input name="qty4" type="text" min="0" class="form-control" id="qty4" value="<?= $dt_qtyorder['QTY_ORDER']; ?><?php if ($cek > 0) {
 																																				echo $rcek['bruto'];
 																																			} else {
 																																				if ($r['Weight'] != "") {
@@ -797,7 +797,7 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 					<label for="loading" class="col-sm-3 control-label">Loading</label>
 					<div class="col-sm-3">
 						<div class="input-group">
-							<input name="loading" type="number" min="0" style="text-align: right;" class="form-control" id="loading" value="" placeholder="0.00">
+							<input name="loading" type="text" min="0" style="text-align: right;" class="form-control" id="loading" value="" placeholder="0.00">
 							<span class="input-group-addon">%</span>
 						</div>
 					</div>
@@ -887,12 +887,13 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="no_resep" class="form-control select2" id="no_resep" onchange="bonresep1()">
 							<option disabled selected>Pilih Bon Resep</option>
 							<?php
-							$q_bonresep				= db2_exec($conn2, "SELECT
+							$q_bonresep				= db2_exec($conn2, "SELECT DISTINCT
+                                                                                PRODUCTIONRESERVATION.GROUPLINE,
 																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) AS PRODUCTIONORDERCODE,
-																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) + '-' + TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
+																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) || '-' || TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
 																				TRIM(SUFFIXCODE) AS SUFFIXCODE
 																			FROM
-																				DB2ADMIN.PRODUCTIONRESERVATION 
+																				PRODUCTIONRESERVATION PRODUCTIONRESERVATION 
 																			WHERE
 																				(PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFD' OR PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFF')
 																				AND	PRODUCTIONRESERVATION.PRODUCTIONORDERCODE = '$nokk'
@@ -914,12 +915,13 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<select name="no_resep2" class="form-control select2" id="no_resep2" onchange="bonresep2()">
 							<option disabled selected>Pilih Bon Resep</option>
 							<?php
-							$q_bonresep2				= db2_exec($conn2, "SELECT
+							$q_bonresep2				= db2_exec($conn2, "SELECT DISTINCT
+                                                                                PRODUCTIONRESERVATION.GROUPLINE,
 																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) AS PRODUCTIONORDERCODE,
-																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) + '-' + TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
+																				TRIM(PRODUCTIONRESERVATION.PRODUCTIONORDERCODE) || '-' || TRIM(PRODUCTIONRESERVATION.GROUPLINE) AS BONRESEP1,
 																				TRIM(SUFFIXCODE) AS SUFFIXCODE
 																			FROM
-																				DB2ADMIN.PRODUCTIONRESERVATION 
+																				PRODUCTIONRESERVATION PRODUCTIONRESERVATION 
 																			WHERE
 																				(PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFD' OR PRODUCTIONRESERVATION.ITEMTYPEAFICODE = 'RFF')
 																				AND	PRODUCTIONRESERVATION.PRODUCTIONORDERCODE = '$nokk'

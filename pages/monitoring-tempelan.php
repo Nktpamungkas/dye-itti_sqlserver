@@ -1,5 +1,5 @@
 <?PHP
-// ini_set("error_reporting", 1);
+ini_set("error_reporting", 1);
 session_start();
 include "koneksi.php";
 ?>
@@ -105,7 +105,8 @@ include "koneksi.php";
                                                 <a href="pages/cetak/cetak_depan.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-warning">Relaxing</a> 
                                             <?php } else if ($rowd['no_mesin'] == "CB") { ?> 
                                                 <a href="pages/cetak/cetak_monitoring_new.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-warning">Monitoring</a> 
-                                                <a href="pages/cetak/cetak.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-success">Tempelan</a> <a href="pages/cetak/cetak_depan_cb.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-primary">C-Bleaching</a>
+                                                <a href="pages/cetak/cetak.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-success">Tempelan</a> 
+                                                <a href="pages/cetak/cetak_depan_cb.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-primary">C-Bleaching</a>
                                             <?php } else { ?> 
                                                 <a href="pages/cetak/cetak_monitoring_new.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-warning">Monitoring</a> 
                                                 <a href="pages/cetak/cetak.php?idkk=<?php echo $rowd['nokk']; ?>&no=<?php echo $rowd['no_resep']; ?>&idm=<?php echo $rowd['idm']; ?>&ids=<?php echo $rowd['ids']; ?>" target="_blank" class="btn btn-xs btn-success">Tempelan</a> 
@@ -126,21 +127,21 @@ include "koneksi.php";
                                         <?php if ($_SESSION['lvl_id10'] == "5") : ?>
                                             <a href="#" id='<?php echo $rowd['idm']; ?>' class="btn btn-xs bg-purple edit_jammasukkain">
                                                 <?php if($rowd['jammasukkain']!=NULL or $rowd['jammasukkain']!=''){echo $rowd['jammasukkain']->format('Y-m-d H:i:s');}
-                                                else echo NULL; ?>
+                                                else echo ''; ?>
                                             </a>
                                         <?php else : ?>
                                             <?php if($rowd['jammasukkain']!=NULL or $rowd['jammasukkain']!=''){echo $rowd['jammasukkain']->format('Y-m-d H:i:s');}
-                                            else echo NULL; ?>
+                                            else echo ''; ?>
                                         <?php endif; ?>
                                         <br><br>
                                         <span class="label bg-red">
                                             <?php if($rowd['tgl_update']!=NULL or $rowd['tgl_update']!=''){echo $rowd['tgl_update']->format('Y-m-d H:i:s');}
-                                            else echo NULL; ?>
+                                            else echo ''; ?>
                                         </span>
                                     </td>
                                     <td><?php echo $rowd['proses']; ?><br><i><?php if($rowd['tgl_buat']!= '' or $rowd['tgl_buat']!=NULL){
                                         echo $rowd['tgl_buat']->format('Y-m-d');
-                                    } else echo NULL; ?></i><br><i class="btn btn-xs bg-hijau"><?php echo $rowd['operator']; ?></i></td>
+                                    } else echo ''; ?></i><br><i class="btn btn-xs bg-hijau"><?php echo $rowd['operator']; ?></i></td>
                                     <td align="left"><span class="label bg-abu"><?php echo $rowd['nokk']; ?></span><br><?php echo $rowd['ket']; ?></td>
                                     <td align="center">
                                         <div class="btn-group">
