@@ -292,41 +292,61 @@ include "koneksi.php";
 								{
 									include "koneksi.php";
 
-									$qLama = sqlsrv_query($con, "WITH TimeDetails AS (
-																	SELECT 
-																		b.tgl_buat, 
-																		a.target,
-																		DATEADD(
-																			MINUTE, 
-																			ROUND((a.target - FLOOR(a.target)) * 100, 0), 
-																			DATEADD(
-																				HOUR, 
-																				FLOOR(a.target), 
-																				b.tgl_buat
-																			)
-																		) AS tgl_buat_target
-																	FROM 
-																		db_dying.tbl_schedule a
-																	LEFT JOIN 
-																		db_dying.tbl_montemp b 
-																	ON 
-																		a.id = b.id_schedule
-																	WHERE 
-																		a.no_mesin = '1103'
-																		AND b.status = 'sedang jalan'
-																)
-																SELECT TOP 1
-																	t.tgl_buat, 
-																	t.target, 
-																	t.tgl_buat_target,
+									$qLama = sqlsrv_query($con, "SELECT TOP 1
+																	b.tgl_buat, 
+																	a.target,
+																	DATEADD(
+																		MINUTE,
+																		ROUND((a.target - FLOOR(a.target)) * 100, 0) + FLOOR(a.target) * 60,
+																		b.tgl_buat
+																	) AS tgl_buat_target,
 																	FORMAT(
-																		ABS(DATEDIFF(MINUTE, GETDATE(), t.tgl_buat_target)),
-																		'hh\:mm'
+																		DATEADD(
+																			MINUTE,
+																			DATEDIFF(
+																				MINUTE,
+																				CASE 
+																					WHEN GETDATE() > DATEADD(
+																						MINUTE,
+																						ROUND((a.target - FLOOR(a.target)) * 100, 0) + FLOOR(a.target) * 60,
+																						b.tgl_buat
+																					) 
+																					THEN GETDATE() 
+																					ELSE DATEADD(
+																						MINUTE,
+																						ROUND((a.target - FLOOR(a.target)) * 100, 0) + FLOOR(a.target) * 60,
+																						b.tgl_buat
+																					) 
+																				END,
+																				CASE 
+																					WHEN GETDATE() > DATEADD(
+																						MINUTE,
+																						ROUND((a.target - FLOOR(a.target)) * 100, 0) + FLOOR(a.target) * 60,
+																						b.tgl_buat
+																					) 
+																					THEN DATEADD(
+																						MINUTE,
+																						ROUND((a.target - FLOOR(a.target)) * 100, 0) + FLOOR(a.target) * 60,
+																						b.tgl_buat
+																					) 
+																					ELSE GETDATE() 
+																				END
+																			),
+																			0
+																		),
+																		'HH:mm'
 																	) AS lama
 																FROM 
-																	TimeDetails t
+																	db_dying.tbl_schedule a
+																LEFT JOIN 
+																	db_dying.tbl_montemp b 
+																ON 
+																	a.id = b.id_schedule
+																WHERE 
+																	a.no_mesin = '$mc' 
+																	AND b.status = 'sedang jalan'
 																ORDER BY 
-																	t.target");
+																	a.no_urut ASC ");
 									$dLama = sqlsrv_fetch_array($qLama);
 									if ($dLama['lama'] != '') {
 

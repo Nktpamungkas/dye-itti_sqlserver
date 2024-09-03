@@ -491,37 +491,50 @@ $rdata=sqlsrv_fetch_array($qryCek);
  </div>
 </form>
 <?php 
-if($_POST['save']=="save"){	
+if($_POST['save']=="save"){
+	if(cek($_POST['idhs']) != NULL) {	
+		$sql = "INSERT INTO db_dying.tbl_masalah_celupan ( 	id_hasilcelup,
+															inspektor,
+															masalah,
+															tidakan_perbaikan,
+															tgl_buat,
+															tgl_update ) VALUES (?, ?, ?, ?, ?, ?)";
+		$data = [
+			cek($_POST['idhs']),
+			cek($_POST['inspektor']),
+			cek($_POST['masalah']),
+			cek($_POST['perbaikan']),
+			date('Y-m-d H:i:s'),
+			date('Y-m-d H:i:s'),
+		];
 
-	$sql = "INSERT INTO db_dying.tbl_masalah_celupan ( 	id_hasilcelup,
-														inspektor,
-														masalah,
-														tidakan_perbaikan,
-														tgl_buat,
-														tgl_update ) VALUES (?, ?, ?, ?, ?, ?)";
-	$data = [
-		cek($_POST['idhs']),
-		cek($_POST['inspektor']),
-		cek($_POST['masalah']),
-		cek($_POST['perbaikan']),
-		date('Y-m-d H:i:s'),
-		date('Y-m-d H:i:s'),
-	];
+		$qrySimpan= sqlsrv_query($con, $sql, $data);
 
-	$qrySimpan= sqlsrv_query($con, $sql, $data);
-
-	if($qrySimpan){
+		if($qrySimpan){
+			echo "<script>
+			swal({
+				title: 'Data Telah DiSimpan',   
+				text: 'Klik Ok untuk input data kembali',
+				type: 'success',
+			}).then((result) => {
+				if (result.value) {
+					window.location.href='?p=Masalah-Celupan'; 
+				}
+			});
+			</script>";
+		}
+	} else {
 		echo "<script>
-		swal({
-			title: 'Data Telah DiSimpan',   
-			text: 'Klik Ok untuk input data kembali',
-			type: 'success',
-		}).then((result) => {
-			if (result.value) {
-				window.location.href='?p=Masalah-Celupan'; 
-			}
-		});
-		</script>";
+			swal({
+				title: 'No KK tidak ada pada hasil celupan.',   
+				text: 'Klik Ok untuk input data kembali',
+				type: 'error',
+			}).then((result) => {
+				if (result.value) {
+					window.location.href='?p=Masalah-Celupan'; 
+				}
+			});
+			</script>";
 	}
 }
 ?>

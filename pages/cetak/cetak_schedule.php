@@ -8,8 +8,10 @@ $act = $_GET['g'];
 //-
 $Awal = $_GET['Awal'];
 $Akhir = $_GET['Akhir'];
-$qTgl = mysqli_query($con, "SELECT DATE_FORMAT(now(),'%Y-%m-%d') as tgl_skrg,DATE_FORMAT(now(),'%H:%i:%s') as jam_skrg");
-$rTgl = mysqli_fetch_array($qTgl);
+$qTgl = sqlsrv_query($con, "SELECT
+  FORMAT (GETDATE (), 'yyyy-MM-dd') AS tgl_skrg,
+  FORMAT (GETDATE (), 'HH:mm:ss') AS jam_skrg;");
+$rTgl = sqlsrv_fetch_array($qTgl);
 if ($Awal != "") {
   $tgl = substr($Awal, 0, 10);
   $jam = $Awal;
@@ -208,52 +210,50 @@ if ($Awal != "") {
               } else {
                 $where = " ";
               }
-              $qCek = mysqli_query($con, "SELECT
-                                            id,
-                                            GROUP_CONCAT( lot SEPARATOR '/' ) AS lot,
-                                            if(COUNT(lot)>1,'Gabung Kartu','') as ket_kartu,
-                                            no_mesin,
-                                            nodemand,
-                                            no_urut,
-                                            buyer,
-                                            langganan,
-                                            GROUP_CONCAT(DISTINCT no_order SEPARATOR '-' ) AS no_order,
-                                            no_resep,
-                                            nokk,
-                                            jenis_kain,
-                                            warna,
-                                            no_warna,
-                                            sum(rol) as rol,
-                                            sum(bruto) as bruto,
-                                            proses,
-                                            ket_status,
-                                            tgl_delivery,
-                                            ket_kain,
-                                            mc_from,
-                                            GROUP_CONCAT(DISTINCT personil SEPARATOR ',' ) AS personil
-                                          FROM
-                                            tbl_schedule 
-                                          WHERE
-                                            (`status` = 'sedang jalan' or `status` ='antri mesin') and no_urut='$no' and no_mesin='$mc' $where
-                                          GROUP BY
-                                            no_mesin,
-                                            no_urut 
-                                          ORDER BY
-                                            id ASC");
-              $row = mysqli_fetch_array($qCek);
+              $qCek = sqlsrv_query($con, "SELECT
+            id,
+            STRING_AGG(lot, '/') AS lot,
+            CASE WHEN COUNT(lot) > 1 THEN 'Gabung Kartu' ELSE '' END AS ket_kartu,
+            no_mesin,
+            no_urut,
+            buyer,
+            langganan,
+            STRING_AGG(no_order, '-') AS no_order,
+            no_resep,
+            nokk,
+            jenis_kain,
+            warna,
+            no_warna,
+            SUM(rol) AS rol,
+            SUM(bruto) AS bruto,
+            proses,
+            ket_status,
+            tgl_delivery,
+            ket_kain,
+            mc_from,
+            STRING_AGG(personil, ',') AS personil
+        FROM
+            db_dying.tbl_schedule
+        WHERE
+            STATUS != 'selesai' AND no_urut = '$no' AND no_mesin = '$mc' $where
+        GROUP BY
+            id, no_mesin, no_urut, buyer, langganan, no_resep, nokk, jenis_kain, warna, no_warna, proses, ket_status, tgl_delivery, ket_kain, mc_from
+        ORDER BY
+      id ASC;");
+              $row = sqlsrv_fetch_array($qCek);
               $dt[] = $row;
               return $dt;
             }
             /* $data=mysqli_query("SELECT b.* from tbl_schedule a
                     LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GROUP BY a.no_mesin ORDER BY a.kapasitas DESC,a.no_mesin ASC"); */
-            $data = mysqli_query($con, "SELECT b.* from tbl_mesin b ORDER BY b.kapasitas DESC,b.no_mesin ASC");
+            $data = sqlsrv_query($con, "SELECT b.* from db_dying.tbl_mesin b ORDER BY b.kapasitas DESC,b.no_mesin ASC");
             $no = 1;
             $n = 1;
             $c = 0;
           ?>
           <?php
             $col = 0;
-            while ($rowd = mysqli_fetch_array($data)) {
+            while ($rowd = sqlsrv_fetch_array($data)) {
               $bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
           ?>
             <tr>
@@ -309,9 +309,9 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top"><?php if ($dd['tgl_delivery'] != "0000-00-00") {
-                                                  echo $dd['tgl_delivery'];
-                                                } ?></td>
+                <td align="center" valign="top" style="font-size: 8px;"><?php 
+                  echo ($dd['tgl_delivery'] != null && $dd['tgl_delivery'] != '') ? $dd['tgl_delivery']->format('Y-m-d') : ''; 
+                  ?></td>
                 <td align="center" valign="top"><?php if ($dd['rol'] != "0") {
                                                   echo $dd['rol'];
                                                 } ?></td>

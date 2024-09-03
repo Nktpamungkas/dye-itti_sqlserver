@@ -438,9 +438,9 @@ desired effect
               <li class="<?php if ($_GET['p'] == "Masalah-Celupan" or $_GET['p'] == "Form-Masalah-Celupan") {
                             echo "active";
                           } ?>"><a href="?p=Masalah-Celupan"><i class="fa fa-cut text-primary"></i> <span>Masalah-Celupan</span></a></li>
-              <li class="<?php if ($_GET['p'] == "Setting-Mesin" or $_GET['p'] == "Form-Setting-Mesin") {
+              <!--<li class="<?php if ($_GET['p'] == "Setting-Mesin" or $_GET['p'] == "Form-Setting-Mesin") {
                             echo "active";
-                          } ?>"><a href="?p=Setting-Mesin"><i class="fa fa-gear text-success"></i> <span>Setting-Mesin</span></a></li>
+                          } ?>"><a href="?p=Setting-Mesin"><i class="fa fa-gear text-success"></i> <span>Setting-Mesin</span></a></li>-->
             </ul>
           </li>
           <li class="treeview <?php if ($_GET['p'] == "lap-hasil-celup" or $_GET['p'] == "lap-harian-produksi" or $_GET['p'] == "lap-monitoring-tempelan" or $_GET['p'] == "lap-schedule" or $_GET['p'] == "lap-potong-celup" or $_GET['p'] == "lap-waktu-proses" or $_GET['p'] == "lap-total-point") {
