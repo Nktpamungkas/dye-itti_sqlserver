@@ -156,6 +156,7 @@ include "koneksi.php";
 								}
 								$col = 0;
 								while ($rowd = sqlsrv_fetch_array($data)) {
+									print_r($rowd['buyer']);
 									$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
 									$qCek = sqlsrv_query($con, "SELECT TOP 1 id as idb FROM db_dying.tbl_potongcelup WHERE nokk='$rowd[nokk]' ORDER BY id DESC ");
 									$rCEk = sqlsrv_fetch_array($qCek);

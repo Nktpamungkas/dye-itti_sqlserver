@@ -866,7 +866,11 @@ $Langganan = isset($_POST['langganan']) ? $_POST['langganan'] : '';
 					<div class="col-sm-3">
 						<div class="input-group">
 							<input type="text" class="form-control timepicker" name="waktu_mulai" id="waktu_mulai"
-								placeholder="00:00" disabled>
+								placeholder="00:00" value="<?php if ($row_hasilcelup['mulai_stop_celup'] != NULL or $row_hasilcelup['mulai_stop_celup'] != '') {
+									echo $row_hasilcelup['mulai_stop_celup']->format('H:i');
+								} else {
+									echo NULL;
+								} ?>"disabled>
 							<div class="input-group-addon">
 								<i class="fa fa-clock-o"></i>
 							</div>
@@ -876,7 +880,11 @@ $Langganan = isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<div class="input-group date">
 							<div class="input-group-addon"> <i class="fa fa-calendar"></i> </div>
 							<input name="mulaism" type="text" class="form-control pull-right" id="datepicker3"
-								placeholder="0000-00-00" value="<?= $row_hasilcelup['mulai_stop_celup']; ?>" disabled />
+								placeholder="0000-00-00" value="<?php if($row_hasilcelup['mulai_stop_celup']!=NULL or $row_hasilcelup['mulai_stop_celup']!=''){
+									echo $row_hasilcelup['mulai_stop_celup'] ->format('Y-m-d');
+								}else{
+									echo NULL;
+								}   ?>" disabled />
 						</div>
 					</div>
 
@@ -886,7 +894,12 @@ $Langganan = isset($_POST['langganan']) ? $_POST['langganan'] : '';
 					<div class="col-sm-3">
 						<div class="input-group">
 							<input type="text" class="form-control timepicker" name="waktu_stop" placeholder="00:00"
-								disabled>
+							value="<?php if ($row_hasilcelup['selesai_stop_celup'] != NULL or $row_hasilcelup['selesai_stop_celup'] != '') {
+								echo $row_hasilcelup['selesai_stop_celup']->format('H:i');
+							} else {
+								echo NULL;
+							} ?>"	
+							disabled>
 							<div class="input-group-addon">
 								<i class="fa fa-clock-o"></i>
 							</div>
@@ -896,7 +909,11 @@ $Langganan = isset($_POST['langganan']) ? $_POST['langganan'] : '';
 						<div class="input-group date">
 							<div class="input-group-addon"> <i class="fa fa-calendar"></i> </div>
 							<input name="selesaism" type="text" class="form-control pull-right" id="datepicker"
-								placeholder="0000-00-00" value="<?= $row_hasilcelup['selesai_stop_celup']; ?>"
+								placeholder="0000-00-00" value="<?php if($row_hasilcelup['selesai_stop_celup']!= NULL or $row_hasilcelup['selesai_stop_celup']!=''){
+									echo $row_hasilcelup['selesai_stop_celup']->format('Y-m-d');
+								} else{
+									echo NULL;
+								} ?>"
 								disabled />
 						</div>
 					</div>
@@ -2179,26 +2196,66 @@ if ($_POST['save'] == "save") {
 	// 				}
 	// 				});</script>";
 
-	if ($stmt) {
+	if ($result==true) {
 		/* awal form potong */
 		$sqlCekP = sqlsrv_query($con, "SELECT TOP 1 a.*,c.k_resep,c.acc_keluar,c.operator_keluar,c.shift as shift_keluar,c.g_shift as g_shift_keluar,c.id as idcelup from db_dying.tbl_schedule a
 											INNER JOIN db_dying.tbl_montemp b ON a.id=b.id_schedule
 											INNER JOIN db_dying.tbl_hasilcelup c ON b.id=c.id_montemp 
 											WHERE a.nokk='" . $_POST['nokk'] . "' ORDER BY c.id DESC");
 		$rcekP = sqlsrv_fetch_array($sqlCekP);
-		$sqlDataP = sqlsrv_query($con, "INSERT INTO db_dying.tbl_potongcelup (id_hasilcelup,
+		if($rcekP['idcelup']!=NULL or $rcekP['idcelup']!=''){
+			$idcelup=$rcekP['idcelup'];
+			}else{
+				$idcelup=NULL;
+			}
+			if($rcekP['nokk']!=NULL or $rcekP['nokk']!=''){
+			$nokk=$rcekP['nokk'];
+			}else{
+				$nokk=NULL;
+			}
+		if ($rcekP['shift'] != NULL or $rcekP['shift'] != '') {
+			$shift = $rcekP['shift'];
+		} else {
+			$shift = NULL;
+		}
+			if($rcekP['g_shift']!=NULL or $rcekP['g_shift']!=''){
+			$g_shift=$rcekP['g_shift'];
+			}else{
+				$g_shift=NULL;
+			}
+			if($rcekP['operator_potong']!=NULL or $rcekP['operator_potong']!=''){
+			$operator_potong=$rcekP['operator_potong'];
+			}else{
+				$operator_potong=NULL;
+			}
+		$todayDate1 = new DateTime();
+		$today1 = $todayDate1->format("Y-m-d H:i:s");
+		$insertDataCelup=
+		[
+				$idcelup,
+				$nokk,
+				$shift,
+				$g_shift,
+				$operator_potong,
+				$today,
+				$today
+			];
+		$sqlDataP = "INSERT INTO db_dying.tbl_potongcelup (id_hasilcelup,
 			nokk,
 			shift,
 			g_shift,
 			operator,
 			tgl_buat,
-			tgl_update) VALUES ('" . $rcekP['idcelup'] . "',
-			'" . $_POST['nokk'] . "',
-			'" . $_POST['shift'] . "',
-			'" . $_POST['g_shift'] . "',
-			'" . $_POST['operator_potong'] . "',
-			GETDATE(),
-			GETDATE())");
+			tgl_update) VALUES (?,?,?,?,?,?,?)";
+			$insert= sqlsrv_prepare($con, $sqlDataP, $insertDataCelup);
+		if ($insert === false) {
+			die(print_r(sqlsrv_errors(), true));
+		}
+		$result2 = sqlsrv_execute($insert);
+
+		if ($result2 === false) {
+			die(print_r(sqlsrv_errors(), true));
+		}
 		/* akhir form potong */
 		$sqlMonT = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_montemp WHERE id='" . $_POST['id'] . "'");
 		$rMonT = sqlsrv_fetch_array($sqlMonT);
