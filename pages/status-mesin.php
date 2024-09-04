@@ -342,7 +342,7 @@ function cek($value) {
 									$target = $row['target'];
 									$jamMasukKain = $row['jammasukkain'];
 
-									if($jamMasukKain == NULL) return;
+									if(cek($jamMasukKain) == NULL) return;
 
 									// Split the target time into hours and minutes
 									list($jamTarget, $menitTarget) = explode('.', $target);
