@@ -37,9 +37,11 @@ while($r=sqlsrv_fetch_array($modal)){
                   <label for="sts_warna" class="col-md-4 control-label">Status Warna</label>
                   <div class="col-md-3">
                   <select name="sts_warna" class="form-control" id="sts_warna" onChange="aktif();">
-							  	<option value="">Pilih</option>
-					  			<option value="OK">OK</option>
-					  			<option value="Tolak Basah">Tolak Basah</option>
+                  <option value="">Pilih</option>
+                  <option value="OK" <?php if (isset($r['comment_warna']) && $r['comment_warna'] == "OK") {
+                    echo "SELECTED";} ?>>OK</option>
+                  <option value="Tolak Basah" <?php if (isset($r['comment_warna']) && $r['comment_warna'] == "Tolak Basah") {
+                    echo "SELECTED";} ?>>Tolak Basah</option>
 				  </select>
                   <span class="help-block with-errors"></span>
                   </div>
@@ -49,11 +51,21 @@ while($r=sqlsrv_fetch_array($modal)){
                   <div class="col-md-3">
                   <select name="ket" class="form-control" id="ket" disabled>
 							  	<option value="">Pilih</option>
-					  			<option value="Tolak Basah BW">BW</option>
-					  			<option value="Tolak Basah Luntur">Luntur</option>
-					  			<option value="Tolak Basah BW+Luntur">BW+Luntur</option>
-					  			<option value="Tolak Basah Kena Warna">Kena Warna</option>
-					  			<option value="Tolak Basah Belang">Belang</option>
+					  			<option value="Tolak Basah BW" <?php if (isset($r['ket']) && $r['ket'] == "Tolak Basah BW") {
+                    echo "SELECTED";
+                  } ?>>BW</option>
+					  			<option value="Tolak Basah Luntur"<?php if (isset($r['ket']) && $r['ket'] == "Tolak Basah Luntur") {
+                    echo "SELECTED";
+                  } ?>>Luntur</option>
+					  			<option value="Tolak Basah BW+Luntur"<?php if (isset($r['ket']) && $r['ket'] == "Tolak Basah BW+Luntur") {
+                    echo "SELECTED";
+                  } ?>>BW+Luntur</option>
+					  			<option value="Tolak Basah Kena Warna"<?php if (isset($r['ket']) && $r['ket'] == "Tolak Basah Kena Warna") {
+                    echo "SELECTED";
+                  } ?>>Kena Warna</option>
+					  			<option value="Tolak Basah Belang"<?php if (isset($r['ket']) && $r['ket'] == "Tolak Basah Belang") {
+                    echo "SELECTED";
+                  } ?>>Belang</option>
 				  </select>
                   <span class="help-block with-errors"></span>
                   </div>
@@ -61,16 +73,18 @@ while($r=sqlsrv_fetch_array($modal)){
 				  <div class="form-group">
                   <label for="acc" class="col-md-4 control-label">Acc Warna</label>
                   <div class="col-md-5">
-				  <input class="form-control" name="acc" value="">	  
+				  <input class="form-control" name="acc" value="<?php if ($r['acc']!= NULL or $r['acc'] != "") {
+            echo $r['acc'];
+          } echo NULL; ?>">	  
                   <!--<select name="acc" class="form-control">
 							  	<option value="">Pilih</option>
 					  			<option value="-">-</option>
 							  <?php 
-							  $sqlKap=sqlsrv_query($con,"SELECT nama FROM db_dying.tbl_staff WHERE jabatan='SPV' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
-							  while($rK=sqlsrv_fetch_array($sqlKap)){
+							  //$sqlKap=sqlsrv_query($con,"SELECT nama FROM db_dying.tbl_staff WHERE jabatan='SPV' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
+							  //while($rK=sqlsrv_fetch_array($sqlKap)){
 							  ?>
-								  <option value="<?php echo $rK['nama']; ?>"><?php echo $rK['nama']; ?></option>
-							 <?php } ?>	  
+								  <option value="<?php //echo $rK['nama']; ?>"><?php //echo $rK['nama']; ?></option>
+							 <?php //} ?>	  
 					  </select>-->
                   <span class="help-block with-errors"></span>
                   </div>
@@ -78,7 +92,10 @@ while($r=sqlsrv_fetch_array($modal)){
 				  <div class="form-group">
                   <label for="dispo" class="col-md-4 control-label">Disposisi</label>
                   <div class="col-md-5">
-                  <input class="form-control" name="disposisi" value="" id="disposisi" disabled>
+                  <input class="form-control" name="disposisi" value="<?php if ($r['disposisi'] != NULL or $r['disposisi'] != "") {
+                    echo $r['disposisi'];
+                  }
+                  echo NULL; ?>" id="disposisi" disabled>
                   <span class="help-block with-errors"></span>
                   </div>
                   </div>
