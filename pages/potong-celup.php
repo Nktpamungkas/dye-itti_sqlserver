@@ -13,13 +13,13 @@ include"koneksi.php";
 
 <body>
 <?php
-   $data=mysqli_query($con,"SELECT a.*,b.k_resep,b.acc_keluar,
+   $data=sqlsrv_query($con,"SELECT TOP 100 a.*,b.k_resep,b.acc_keluar,
    b.operator_keluar,b.shift as shift_keluar,
-   b.g_shift as g_shift_keluar,c.comment_warna,c.acc,c.ket,c.id as idb,c.disposisi from tbl_schedule a
-     INNER JOIN tbl_montemp d ON a.id=d.id_schedule
-	 INNER JOIN tbl_hasilcelup b ON d.id=b.id_montemp
-	 INNER JOIN tbl_potongcelup c ON b.id=c.id_hasilcelup
-	 ORDER BY c.id DESC LIMIT 100");
+   b.g_shift as g_shift_keluar,c.comment_warna,c.acc,c.ket,c.id as idb,c.disposisi from db_dying.tbl_schedule a
+     INNER JOIN db_dying.tbl_montemp d ON a.id=d.id_schedule
+	 INNER JOIN db_dying.tbl_hasilcelup b ON d.id=b.id_montemp
+	 INNER JOIN db_dying.tbl_potongcelup c ON b.id=c.id_hasilcelup
+	 ORDER BY c.id DESC ");
 	$no=1;
 	$n=1;
 	$c=0;
@@ -51,7 +51,7 @@ include"koneksi.php";
           <tbody>
             <?php
 	  $col=0;
-  while($rowd=mysqli_fetch_array($data)){
+  while($rowd=sqlsrv_fetch_array($data)){
 			$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
 		 ?>
             <tr bgcolor="<?php echo $bgcolor; ?>">
@@ -63,10 +63,10 @@ include"koneksi.php";
               <td align="left" style="font-size: 10px;"><?php echo $rowd['jenis_kain'];?></td>
               <td align="center" style="font-size: 11px;"><?php echo $rowd['warna'];?></td>
               <td align="left"><?php echo $rowd['proses'];?><br><i class="btn btn-xs bg-hijau"><?php echo $rowd['operator'];?></i></td>
-              <td><span class="label <?php if($rowd['ket']=="Tolak Basah BW"){echo "label-warning";}else if($rowd['ket']=="Tolak Basah Luntur"){ echo "label-danger";}?>"><?php echo $rowd['ket'];?></span></td>
+              <td><span class="label <?php if($rowd['ket']=="Tolak Basah BW"){echo "label-warning";}else if($rowd['ket']=="Tolak Basah Luntur"){ echo "label-danger";}else{echo"label-danger";}?>"><?php echo $rowd['ket'];?></span></td>
               <td align="center"><?php echo $rowd['acc'];?></td>
               <td align="center"><?php echo $rowd['disposisi'];?></td>
-			  <td align="center"><div class="btn-group"><a href="pages/cetak/cetak_celup.php?id=<?php echo $rowd['idb'] ?>" class="btn btn-xs btn-warning" target="_blank"><i class="fa fa-print"></i> </a><a href="#" id='<?php echo $rowd['idb']; ?>' class="btn btn-xs btn-info potong_edit"><i class="fa fa-edit"></i> </a><a href="#" onclick="confirm_del('?p=ptg_hapus&id=<?php echo $rowd['idb'] ?>');" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> </a></div></td>
+			        <td align="center"><div class="btn-group"><a href="pages/cetak/cetak_celup.php?id=<?php echo $rowd['idb'] ?>" class="btn btn-xs btn-warning" target="_blank"><i class="fa fa-print"></i> </a><a href="#" id='<?php echo $rowd['idb']; ?>' class="btn btn-xs btn-info potong_edit"><i class="fa fa-edit"></i> </a><a href="#" onclick="confirm_del('?p=ptg_hapus&id=<?php echo $rowd['idb'] ?>');" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> </a></div></td>
             </tr>
             <?php
 						$no++;
