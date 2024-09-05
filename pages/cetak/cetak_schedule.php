@@ -2,6 +2,7 @@
 include "../../koneksi.php";
 ini_set("error_reporting", 1);
 include "../../tgl_indo.php";
+include_once '../../utils/helper.php';
 //--
 $idkk = $_GET['idkk'];
 $act = $_GET['g'];
@@ -206,7 +207,7 @@ if ($Awal != "") {
             {
               include "../../koneksi.php";
               if ($awal != "") {
-                $where = " AND DATE_FORMAT( tgl_update, '%Y-%m-%d %H:%i:%s' ) BETWEEN '$awal' AND '$akhir' ";
+                $where = " AND CONVERT(date,tgl_update  ) BETWEEN '$awal' AND '$akhir' ";
               } else {
                 $where = " ";
               }
@@ -309,9 +310,7 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top" style="font-size: 8px;"><?php 
-                  echo ($dd['tgl_delivery'] != null && $dd['tgl_delivery'] != '') ? $dd['tgl_delivery']->format('Y-m-d') : ''; 
-                  ?></td>
+                <td align="center" valign="top" style="font-size: 8px;"><?php echo cek($dd['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php if ($dd['rol'] != "0") {
                                                   echo $dd['rol'];
                                                 } ?></td>
@@ -364,7 +363,7 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top"><?php echo $dd1['tgl_delivery']; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd1['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd1['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd1['bruto']; ?></td>
                 <td valign="top"><?php echo $dd1['ket_status']; ?><br>
@@ -413,7 +412,7 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top"><?php echo $dd2['tgl_delivery']; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd2['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd2['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd2['bruto']; ?></td>
                 <td valign="top"><?php echo $dd2['ket_status']; ?><br>
@@ -462,7 +461,7 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top"><?php echo $dd3['tgl_delivery']; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd3['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd3['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd3['bruto']; ?></td>
                 <td valign="top"><?php echo $dd3['ket_status']; ?><br>
@@ -511,7 +510,7 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top"><?php echo $dd4['tgl_delivery']; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd4['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd4['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd4['bruto']; ?></td>
                 <td valign="top"><?php echo $dd4['ket_status']; ?><br>
@@ -560,7 +559,7 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top"><?php echo $dd5['tgl_delivery']; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd5['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd5['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd5['bruto']; ?></td>
                 <td valign="top"><?php echo $dd5['ket_status']; ?><br>
@@ -609,7 +608,7 @@ if ($Awal != "") {
                     ?>
                   </div>
                 </td>
-                <td align="center" valign="top"><?php echo $dd6['tgl_delivery']; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd6 ['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd6['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd6['bruto']; ?></td>
                 <td valign="top"><?php echo $dd6['ket_status']; ?><br>
@@ -672,20 +671,28 @@ if ($Awal != "") {
       <tr>
         <td width="73%" rowspan="4">
           <div style="font-size: 11px; font-family:sans-serif, Roman, serif;">
-            <?Php $dtKet = mysqli_query($con, "SELECT
-                                          sum( IF ( ket_status = 'Tolak Basah', 1, 0 ) ) AS tolak_basah,
-                                          sum( IF ( ket_status = 'Gagal Proses', 1, 0 ) ) AS gagal_proses,
-                                          sum( IF ( ket_status = 'Perbaikan', 1, 0 ) ) AS perbaikan,
-                                          sum( IF ( ket_status = 'Greige' OR ket_status = 'Salesmen Sample' OR ket_status = 'Development Sample' OR ket_status = 'Cuci Misty' OR ket_status = 'Cuci YD', 1, 0 ) ) AS greige,
-                                          sum( IF ( ket_status = 'Tolak Basah',bruto, 0 ) ) AS tolak_basah_kg,
-                                          sum( IF ( ket_status = 'Gagal Proses', bruto, 0 ) ) AS gagal_proses_kg,
-                                          sum( IF ( ket_status = 'Perbaikan', bruto, 0 ) ) AS perbaikan_kg,
-                                          sum( IF ( ket_status = 'Greige' OR ket_status = 'Salesmen Sample' OR ket_status = 'Development Sample' OR ket_status = 'Cuci Misty' OR ket_status = 'Cuci YD', bruto, 0 ) ) AS greige_kg
-                                        FROM
-                                          tbl_schedule 
-                                        WHERE
-                                          `status` = 'sedang jalan' or `status` ='antri mesin'");
-            $rKet = mysqli_fetch_array($dtKet); ?>
+            <?Php $dtKet = sqlsrv_query($con, "SELECT
+                                                SUM(CASE WHEN ket_status = 'Tolak Basah' THEN 1 ELSE 0 END) AS tolak_basah,
+                                                SUM(CASE WHEN ket_status = 'Gagal Proses' THEN 1 ELSE 0 END) AS gagal_proses,
+                                                SUM(CASE WHEN ket_status = 'Perbaikan' THEN 1 ELSE 0 END) AS perbaikan,
+                                                SUM(CASE
+                                                    WHEN ket_status IN ('Greige', 'Salesmen Sample', 'Development Sample', 'Cuci Misty', 'Cuci YD') THEN 1
+                                                    ELSE 0
+                                                END) AS greige,
+                                                SUM(CASE WHEN ket_status = 'Tolak Basah' THEN bruto ELSE 0 END) AS tolak_basah_kg,
+                                                SUM(CASE WHEN ket_status = 'Gagal Proses' THEN bruto ELSE 0 END) AS gagal_proses_kg,
+                                                SUM(CASE WHEN ket_status = 'Perbaikan' THEN bruto ELSE 0 END) AS perbaikan_kg,
+                                                SUM(CASE
+                                                    WHEN ket_status IN ('Greige', 'Salesmen Sample', 'Development Sample', 'Cuci Misty', 'Cuci YD') THEN bruto
+                                                    ELSE 0
+                                                END) AS greige_kg
+                                            FROM
+                                                db_dying.tbl_schedule
+                                            WHERE
+                                                [status] = 'sedang jalan'
+                                                OR [status] = 'antri mesin';
+                                            ");
+            $rKet = sqlsrv_fetch_array($dtKet); ?>
             Perbaikan: <?php echo $rKet['perbaikan']; ?> Lot &nbsp; <?php echo $rKet['perbaikan_kg']; ?> Kg<br />
             Gagal Proses : <?php echo $rKet['gagal_proses']; ?> Lot &nbsp; <?php echo $rKet['gagal_proses_kg']; ?> Kg<br />
             Greige : <?php echo $rKet['greige']; ?> Lot &nbsp; <?php echo $rKet['greige_kg']; ?> Kg<br />
