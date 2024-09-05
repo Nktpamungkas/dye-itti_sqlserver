@@ -2,6 +2,7 @@
 ini_set("error_reporting", 1);
 include "../../koneksi.php";
 include "../../tgl_indo.php";
+include_once '../../utils/helper.php';
 //--
 $idkk = $_REQUEST['idkk'];
 $act = $_GET['g'];
@@ -313,9 +314,7 @@ if ($Awal != "") {
                 <td align="center" valign="top">
                   <div style="font-size: 8px;"><?php echo $dd['lot']; ?></div>
                 </td>
-                <td align="center" valign="top"><?php if ($dd['tgl_delivery'] != "0000-00-00") {
-                                                  echo ($dd['tgl_delivery'] != null or $dd['tgl_delivery'] != '') ? $dd['tgl_delivery']->format('Y-m-d H:i:s') : '';
-                                                } ?></td>
+                <td align="center" valign="top"><?php echo cek($dd['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php if ($dd['rol'] != "0") {
                                                   echo $dd['rol'];
                                                 } ?></td>
@@ -356,7 +355,7 @@ if ($Awal != "") {
                 <td align="center" valign="top">
                   <div style="font-size: 8px;"><?php echo $dd1['lot']; ?></div>
                 </td>
-                <td align="center" valign="top"><?php echo ($dd1['tgl_delivery'] != null or $dd1['tgl_delivery'] != '') ? $dd1['tgl_delivery']->format('Y-m-d H:i:s') : ''; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd1['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd1['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd1['bruto']; ?></td>
                 <td valign="top"><?php echo $dd1['ket_status']; ?><br />
@@ -393,7 +392,7 @@ if ($Awal != "") {
                 <td align="center" valign="top">
                   <div style="font-size: 8px;"><?php echo $dd2['lot']; ?></div>
                 </td>
-                <td align="center" valign="top"><?php echo ($dd2['tgl_delivery'] != null or $dd2['tgl_delivery'] != '') ? $dd2['tgl_delivery']->format('Y-m-d H:i:s') : ''; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd2['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd2['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd2['bruto']; ?></td>
                 <td valign="top"><?php echo $dd2['ket_status']; ?><br />
@@ -430,7 +429,7 @@ if ($Awal != "") {
                 <td align="center" valign="top">
                   <div style="font-size: 8px;"><?php echo $dd3['lot']; ?></div>
                 </td>
-                <td align="center" valign="top"><?php echo ($dd3['tgl_delivery'] != null or $dd3['tgl_delivery'] != '') ? $dd3['tgl_delivery']->format('Y-m-d H:i:s') : ''; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd3['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd3['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd3['bruto']; ?></td>
                 <td valign="top"><?php echo $dd3['ket_status']; ?><br />
@@ -467,7 +466,7 @@ if ($Awal != "") {
                 <td align="center" valign="top">
                   <div style="font-size: 8px;"><?php echo $dd4['lot']; ?></div>
                 </td>
-                <td align="center" valign="top"><?php echo ($dd4['tgl_delivery'] != null or $dd4['tgl_delivery'] != '') ? $dd4['tgl_delivery']->format('Y-m-d H:i:s') : ''; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd4['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd4['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd4['bruto']; ?></td>
                 <td valign="top"><?php echo $dd4['ket_status']; ?><br />
@@ -504,7 +503,7 @@ if ($Awal != "") {
                 <td align="center" valign="top">
                   <div style="font-size: 8px;"><?php echo $dd5['lot']; ?></div>
                 </td>
-                <td align="center" valign="top"><?php echo($dd5['tgl_delivery'] != null or $dd5['tgl_delivery'] != '') ? $dd5['tgl_delivery']->format('Y-m-d H:i:s') : ''; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd5['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd5['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd5['bruto']; ?></td>
                 <td valign="top"><?php echo $dd5['ket_status']; ?><br />
@@ -541,7 +540,7 @@ if ($Awal != "") {
                 <td align="center" valign="top">
                   <div style="font-size: 8px;"><?php echo $dd6['lot']; ?></div>
                 </td>
-                <td align="center" valign="top"><?php echo ($dd6['tgl_delivery'] != null or $dd6['tgl_delivery'] != '') ? $dd6['tgl_delivery']->format('Y-m-d H:i:s') : ''; ?></td>
+                <td align="center" valign="top"><?php echo cek($dd6['tgl_delivery']) ?></td>
                 <td align="center" valign="top"><?php echo $dd6['rol']; ?></td>
                 <td align="right" valign="top"><?php echo $dd6['bruto']; ?></td>
                 <td valign="top"><?php echo $dd6['ket_status']; ?><br />

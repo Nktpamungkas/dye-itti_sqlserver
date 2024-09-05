@@ -797,7 +797,7 @@ $Langganan	= isset($_POST['langganan']) ? $_POST['langganan'] : '';
 					<label for="loading" class="col-sm-3 control-label">Loading</label>
 					<div class="col-sm-3">
 						<div class="input-group">
-							<input name="loading" type="number" min="0" style="text-align: right;" class="form-control" id="loading" value="" placeholder="0.00">
+							<input name="loading" type="text" min="0" style="text-align: right;" class="form-control" id="loading" value="" placeholder="0.00">
 							<span class="input-group-addon">%</span>
 						</div>
 					</div>

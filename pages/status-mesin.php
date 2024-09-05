@@ -1,7 +1,30 @@
 <?php
-// ini_set("error_reporting", 1);
 session_start();
 include "koneksi.php";
+
+function cek($value) {
+	if($value == NULL || $value == "") {
+		return NULL;
+	}
+  
+	if($value instanceof DateTime) {
+		if($value->format('Y-m-d') != '1900-01-01') {
+			return $value->format('Y-m-d');
+		} else {
+			return NULL;
+		}
+	}
+  
+	if($value == '1900-01-01') {
+		return NULL;
+	}
+  
+	if($value == '.00') {
+	  return NULL;
+	}
+  
+	return $value;
+  }
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -292,48 +315,54 @@ include "koneksi.php";
 								{
 									include "koneksi.php";
 
-									$qLama = sqlsrv_query($con, "WITH TimeDetails AS (
-																	SELECT 
-																		b.tgl_buat, 
-																		a.target,
-																		DATEADD(
-																			MINUTE, 
-																			ROUND((a.target - FLOOR(a.target)) * 100, 0), 
-																			DATEADD(
-																				HOUR, 
-																				FLOOR(a.target), 
-																				b.tgl_buat
-																			)
-																		) AS tgl_buat_target
-																	FROM 
-																		db_dying.tbl_schedule a
-																	LEFT JOIN 
-																		db_dying.tbl_montemp b 
-																	ON 
-																		a.id = b.id_schedule
-																	WHERE 
-																		a.no_mesin = '1103'
-																		AND b.status = 'sedang jalan'
-																)
-																SELECT TOP 1
-																	t.tgl_buat, 
-																	t.target, 
-																	t.tgl_buat_target,
-																	FORMAT(
-																		ABS(DATEDIFF(MINUTE, GETDATE(), t.tgl_buat_target)),
-																		'hh\:mm'
-																	) AS lama
-																FROM 
-																	TimeDetails t
-																ORDER BY 
-																	t.target");
-									$dLama = sqlsrv_fetch_array($qLama);
-									if ($dLama['lama'] != '') {
+									// SQL query to select the required data
+									$sql = " SELECT TOP 1
+												a.target,
+												b.jammasukkain
+											FROM 
+												db_dying.tbl_schedule a
+											LEFT JOIN 
+												db_dying.tbl_montemp b 
+											ON 
+												a.id = b.id_schedule
+											WHERE 
+												a.no_mesin = '$mc' 
+												AND b.status = 'sedang jalan'
+											ORDER BY 
+												a.no_urut ASC
+											";
 
-										echo $dLama['lama'];
-									} else {
-										echo '';
-									}
+									// Execute the SQL query
+									$stmt = sqlsrv_query($con, $sql);
+
+									// Fetch the result as an associative array
+									$row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+
+									// Extract values from the fetched data
+									$target = $row['target'];
+									$jamMasukKain = $row['jammasukkain'];
+
+									if(cek($jamMasukKain) == NULL) return;
+
+									// Split the target time into hours and minutes
+									list($jamTarget, $menitTarget) = explode('.', $target);
+									$totalMenitTarget = ((int)$jamTarget * 60) + (int)$menitTarget;
+
+									// Add the interval to the 'jamMasukKain' datetime object
+									$interval = new DateInterval('PT' . $totalMenitTarget . 'M');
+									$jamMasukKain->add($interval);
+
+									// Calculate the difference between now and the updated 'jamMasukKain'
+									$now = new DateTime();
+									$hasil = $jamMasukKain->diff($now);
+
+									// Format the difference in hours and minutes
+									$hours = $hasil->h + ($hasil->days * 24);
+									$minutes = $hasil->i;
+									$formattedDifference = sprintf("%02d:%02d", $hours, $minutes);
+
+									// Output the formatted difference
+									echo $formattedDifference;
 								}
 
 								/* Total Status Mesin */

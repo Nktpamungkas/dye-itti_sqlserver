@@ -1575,7 +1575,7 @@ if ($_POST['save'] == "save") {
 	// 				}
 	// 				});</script>";
 
-	if ($stmt) {
+	if ($result==TRUE) {
 		$sqlD = sqlsrv_query($con, "UPDATE db_dying.tbl_schedule SET 
 									[status]='sedang jalan',
 									tgl_update=GETDATE()
@@ -1651,7 +1651,7 @@ if ($_POST['update'] == "update") {
 		  grm_fin='" . $_POST['grm_fin'] . "',
 		  nokk_legacy='" . $_POST['nokk_legacy'] . "',
 		  masukkain='" . $_POST['masukkain'] . "',
-		  tgl_update=GETDATE()
+		  tgl_update=GETDATE(),
 		  WHERE nokk='" . $_POST['nokk'] . "'");
 
 	if ($sqlData) {

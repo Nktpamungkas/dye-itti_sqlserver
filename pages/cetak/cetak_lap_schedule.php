@@ -4,12 +4,15 @@ ini_set("error_reporting", 1);
 include "../../koneksi.php";
 include "../../koneksiLAB.php";
 include "../../tgl_indo.php";
+include_once "../../utils/helper.php";
 //--
 $idkk=$_REQUEST['idkk'];
 $act=$_GET['g'];
 //-
-$qTgl=mysqli_query($con,"SELECT DATE_FORMAT(now(),'%Y-%m-%d') as tgl_skrg,DATE_FORMAT(now(),'%H:%i:%s') as jam_skrg");
-$rTgl=mysqli_fetch_array($qTgl);
+$qTgl=sqlsrv_query($con,"SELECT 
+    FORMAT(GETDATE(), 'yyyy-MM-dd') AS tgl_skrg,
+    FORMAT(GETDATE(), 'HH:mm:ss') AS jam_skrg");
+$rTgl=sqlsrv_fetch_array($qTgl);
 $Awal= $_GET['awal'];	  
 $start_date = $Awal.' 07:15:00'; 
 $stop_date  = date('Y-m-d', strtotime($Awal . ' +1 day')).' 07:15:00';
@@ -152,51 +155,64 @@ Hari/Tanggal : <?php echo tanggal_indo ($Awal, true);?>
 	<?php	
 	function tampil($mc,$no,$start,$stop){
     include "../../koneksi.php";
-		$qCek=mysqli_query($con,"SELECT
-   	id,
-	GROUP_CONCAT( lot SEPARATOR '/' ) AS lot,
-	if(COUNT(lot)>1,'Gabung Kartu','') as ket_kartu,
-	no_mesin,
-	no_sch as no_urut,
-	buyer,
-	langganan,
-	GROUP_CONCAT(DISTINCT no_order SEPARATOR '-' ) AS no_order,
-	no_resep,
-	nokk,
-	jenis_kain,
-	warna,
-	no_warna,
-	sum(rol) as rol,
-	sum(bruto) as bruto,
-	proses,
-	ket_status,
-	tgl_delivery,
-	ket_kain,
-	personil
-FROM
-	tbl_schedule 
-WHERE
- no_sch='$no' AND no_mesin='$mc' AND DATE_FORMAT( tgl_update, '%Y-%m-%d %H:%i:%s' ) BETWEEN '$start' AND '$stop'
-GROUP BY
-	no_mesin,
-	no_sch 
-ORDER BY
-	id ASC");
-	  	$row=mysqli_fetch_array($qCek);
-		$dt[]=$row;
-		return $dt;
+		$qCek=sqlsrv_query($con,"WITH DistinctOrders AS (
+                                      SELECT
+                                          id,
+                                          no_order
+                                      FROM
+                                          db_dying.tbl_schedule
+                                      GROUP BY
+                                          id, no_order 
+                                  )
+                                  SELECT
+                                      s.id, 
+                                      STRING_AGG(s.lot, '/') AS lot, 
+                                      CASE WHEN COUNT(s.lot) > 1 THEN 'Gabung Kartu' ELSE '' END AS ket_kartu, 
+                                      s.no_mesin, 
+                                      s.no_sch AS no_urut, 
+                                      s.buyer, 
+                                      s.langganan, 
+                                      STRING_AGG(d.no_order, '-') AS no_order, 
+                                      s.no_resep, 
+                                      s.nokk, 
+                                      s.jenis_kain, 
+                                      s.warna, 
+                                      s.no_warna, 
+                                      SUM(s.rol) AS rol, 
+                                      SUM(s.bruto) AS bruto, 
+                                      s.proses, 
+                                      s.ket_status, 
+                                      s.tgl_delivery, 
+                                      s.ket_kain, 
+                                      s.personil 
+                                  FROM
+                                      db_dying.tbl_schedule s 
+                                  JOIN
+                                      DistinctOrders d 
+                                      ON s.id = d.id 
+                                  WHERE
+                                      s.no_sch = '$no'
+                                      AND s.no_mesin = '$mc'
+                                      AND s.tgl_update BETWEEN '$start' AND '$stop'
+                                  GROUP BY
+                                      s.id, s.no_mesin, s.no_sch, s.buyer, s.langganan, s.no_resep, s.nokk, s.jenis_kain, s.warna, s.no_warna, s.proses, s.ket_status, s.tgl_delivery, s.ket_kain, s.personil 
+                                  ORDER BY
+                                      s.id ASC; 
+                                  ");
+	  	$row=sqlsrv_fetch_array($qCek, SQLSRV_FETCH_ASSOC);
+      $dt[]=$row;
+      return $dt;
 					
 	}
-   /* $data=mysqli_query("SELECT b.* from tbl_schedule a
-LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GROUP BY a.no_mesin ORDER BY a.kapasitas DESC,a.no_mesin ASC"); */
-	$data=mysqli_query($con,"SELECT b.* from tbl_mesin b ORDER BY b.kapasitas DESC,b.no_mesin ASC");
+
+	$data=sqlsrv_query($con,"SELECT b.* from db_dying.tbl_mesin b ORDER BY b.kapasitas DESC,b.no_mesin ASC");
 	$no=1;
 	$n=1;
 	$c=0;
 	 ?>
 	<?php
 	  $col=0;
-  while($rowd=mysqli_fetch_array($data)){
+  while($rowd=sqlsrv_fetch_array($data)){
 			$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
 		 ?>
     <tr>
@@ -208,7 +224,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       </td>	  	
       <td valign="top" style="height: 0.27in;"><div align="center">1</div></td>
 	  <?php foreach(tampil($rowd['no_mesin'],"1",$start_date,$stop_date) as $dd){ ?>	
-      <td align="center" valign="top"><?php echo $dd['langganan']; ?></td>
+      <td align="center" valign="top"><?php echo $dd['langganan'] ; ?></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd['no_order']; ?></div></td>
       <td valign="top"><div style="font-size: 8px;">
         <?php if(strlen($dd['jenis_kain'])>25){echo substr($dd['jenis_kain'],0,25)."...";}else{echo $dd['jenis_kain'];} ?>
@@ -218,7 +234,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       </div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd['lot']; ?></div></td>
-      <td align="center" valign="top"><?php if($dd['tgl_delivery']!="0000-00-00"){echo $dd['tgl_delivery'];} ?></td>
+      <td align="center" valign="top"><?php echo cek($dd['tgl_delivery']) ?></td>
       <td align="center" valign="top"><?php if($dd['rol']!="0"){echo $dd['rol'];} ?></td>
       <td align="right" valign="top"><?php if($dd['bruto']!="0"){echo $dd['bruto'];} ?></td>
       <td valign="top"><?php echo $dd['ket_status']; ?><br>
@@ -237,7 +253,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd1['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd1['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd1['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd1['tgl_delivery']; ?></td>
+      <td align="center" valign="top"><?php echo cek($dd1['tgl_delivery']) ?></td>
       <td align="center" valign="top"><?php echo $dd1['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd1['bruto']; ?></td>
       <td valign="top"><?php echo $dd1['ket_status']; ?><br>
@@ -256,7 +272,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd2['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd2['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd2['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd2['tgl_delivery']; ?></td>
+      <td align="center" valign="top"><?php echo cek($dd2['tgl_delivery']) ?></td>
       <td align="center" valign="top"><?php echo $dd2['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd2['bruto']; ?></td>
       <td valign="top"><?php echo $dd2['ket_status']; ?><br>
@@ -275,7 +291,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd3['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd3['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd3['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd3['tgl_delivery']; ?></td>
+      <td align="center" valign="top"><?php echo cek($dd3['tgl_delivery']) ?></td>
       <td align="center" valign="top"><?php echo $dd3['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd3['bruto']; ?></td>
       <td valign="top"><?php echo $dd3['ket_status']; ?><br>
@@ -294,7 +310,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd4['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd4['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd4['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd4['tgl_delivery']; ?></td>
+      <td align="center" valign="top"><?php echo cek($dd4['tgl_delivery']) ?></td>
       <td align="center" valign="top"><?php echo $dd4['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd4['bruto']; ?></td>
       <td valign="top"><?php echo $dd4['ket_status']; ?><br>
@@ -313,7 +329,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd5['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd5['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd5['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd5['tgl_delivery']; ?></td>
+      <td align="center" valign="top"><?php echo cek($dd5['tgl_delivery']) ?></td>
       <td align="center" valign="top"><?php echo $dd5['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd5['bruto']; ?></td>
       <td valign="top"><?php echo $dd5['ket_status']; ?><br>
@@ -332,7 +348,7 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd6['warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd6['no_warna']; ?></div></td>
       <td align="center" valign="top"><div style="font-size: 8px;"><?php echo $dd6['lot']; ?></div></td>
-      <td align="center" valign="top"><?php echo $dd6['tgl_delivery']; ?></td>
+      <td align="center" valign="top"><?php echo cek($dd6['tgl_delivery']) ?></td>
       <td align="center" valign="top"><?php echo $dd6['rol']; ?></td>
       <td align="right" valign="top"><?php echo $dd6['bruto']; ?></td>
       <td valign="top"><?php echo $dd6['ket_status']; ?><br>
@@ -385,15 +401,30 @@ LEFT JOIN tbl_mesin b ON a.no_mesin=b.no_mesin WHERE not a.`status`='selesai' GR
 </table>
 <br />
 <div style="font-size: 11px; font-family:sans-serif, Roman, serif;">
-  <?Php $dtKet=mysqli_query($con,"SELECT
-   	sum(if(ket_status='Tolak Basah',1,0)) as tolak_basah,
-	  sum(if(ket_status='Gagal Proses',1,0)) as gagal_proses,
-		sum(if(ket_status='perbaikan',1,0)) as perbaikan	
-FROM
-	tbl_schedule 
-WHERE
-	NOT STATUS = 'selesai'");
-		$rKet=mysqli_fetch_array($dtKet);?>
+  <?Php $dtKet=sqlsrv_query($con,"SELECT
+                                  SUM(
+                                    CASE
+                                      WHEN ket_status = 'Tolak Basah' THEN 1
+                                      ELSE 0
+                                    END
+                                  ) AS tolak_basah,
+                                  SUM(
+                                    CASE
+                                      WHEN ket_status = 'Gagal Proses' THEN 1
+                                      ELSE 0
+                                    END
+                                  ) AS gagal_proses,
+                                  SUM(
+                                    CASE
+                                      WHEN ket_status = 'perbaikan' THEN 1
+                                      ELSE 0
+                                    END
+                                  ) AS perbaikan
+                                FROM
+                                  db_dying.tbl_schedule
+                                WHERE
+                                  STATUS <> 'selesai';");
+		$rKet=sqlsrv_fetch_array($dtKet);?>
   Perbaikan: <?php echo $rKet['perbaikan']; ?> Lot<br />
   Gagal Proses : <?php echo $rKet['gagal_proses']; ?> Lot<br />
   Tolak Basah : <?php echo $rKet['tolak_basah']; ?> Lot </div>
