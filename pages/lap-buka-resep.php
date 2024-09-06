@@ -20,7 +20,7 @@
     if($jamA & $jamAr){
         $where_jam  = "createdatetime BETWEEN '$start_date' AND '$stop_date'";
     }else{
-        $where_jam  = "DATE(createdatetime) BETWEEN '$Awal' AND '$Akhir'";
+        $where_jam  = "CAST(createdatetime as DATE) BETWEEN '$Awal' AND '$Akhir'";
     }
 
     if($GShift == 'ALL'){
@@ -127,7 +127,7 @@
                                         </thead>
                                         <tbody>
                                             <?php
-
+                                                // var_dump($where_jam);
                                                 $q_bukaresep    = sqlsrv_query($con, "SELECT
                                                                                     CAST(createdatetime as DATE) AS TGL,
                                                                                     COUNT(nokk) AS buka_resep
