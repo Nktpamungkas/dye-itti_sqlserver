@@ -1,8 +1,3 @@
-<?php
-session_start();
-include "koneksi.php";
-?>
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -96,7 +91,10 @@ include "koneksi.php";
 																AND (b.status = 'sedang jalan' OR a.status = 'antri mesin')
 																ORDER BY a.no_urut ASC;
 																");
-									$dMC = sqlsrv_fetch_array($qMC);
+									$dMC = sqlsrv_fetch_array($qMC, SQLSRV_FETCH_ASSOC);
+
+									$dMC = array_trim_cek($dMC);
+
 									$qLama = sqlsrv_query($con, "select
 																		ROUND(DATEDIFF(HOUR, GETDATE(), b.tgl_target), 0) AS lama
 																	from
@@ -108,7 +106,7 @@ include "koneksi.php";
 																		and b.status = 'sedang jalan'
 																	order by
 																		a.no_urut asc");
-									$dLama = sqlsrv_fetch_array($qLama);
+									$dLama = sqlsrv_fetch_array($qLama, SQLSRV_FETCH_ASSOC);
 
 									if ($dMC['ket_status'] == "Tolak Basah") {
 										if ($dLama['lama'] < "1" and $dLama['lama'] != "") {
@@ -338,7 +336,7 @@ include "koneksi.php";
 									$formattedDifference = sprintf("%02d:%02d", $hours, $minutes);
 
 									// Output the formatted difference
-									echo $formattedDifference;
+									return $formattedDifference;
 								}
 
 								/* Total Status Mesin */
