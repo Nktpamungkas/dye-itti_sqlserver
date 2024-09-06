@@ -128,55 +128,60 @@
                                         <tbody>
                                             <?php
 
-                                                $q_bukaresep    = mysqli_query($con, "SELECT
-                                                                                        DATE(createdatetime) AS TGL,
-                                                                                        COUNT(nokk) AS buka_resep
+                                                $q_bukaresep    = sqlsrv_query($con, "SELECT
+                                                                                    CAST(createdatetime as DATE) AS TGL,
+                                                                                    COUNT(nokk) AS buka_resep
                                                                                     FROM
-                                                                                        tbl_bukaresep 
+                                                                                    db_dying.tbl_bukaresep 
                                                                                     WHERE 
-                                                                                        $where_jam $where_gshift
+                                                                                       $where_jam 
+                                                                                       $where_gshift
                                                                                     GROUP BY 
-                                                                                        DATE(createdatetime)");
+                                                                                    CAST(createdatetime as DATE)");
                                                 $no = 1;
                                             ?>
-                                            <?php while ($row_bukaresep = mysqli_fetch_array($q_bukaresep)) { ?>
+                                            <?php while ($row_bukaresep = sqlsrv_fetch_array($q_bukaresep)) { ?>
                                                 <?php
-                                                    $q_bukaresep_ok     = mysqli_query($con, "SELECT
-                                                                                                DATE(createdatetime) AS TGL,
+                                                    $q_bukaresep_ok     = sqlsrv_query($con, "SELECT
+                                                                                                 CAST(createdatetime as DATE) AS TGL,
                                                                                                 COUNT(nokk) AS ok
                                                                                             FROM
-                                                                                                tbl_bukaresep 
+                                                                                                db_dying.tbl_bukaresep 
                                                                                             WHERE 
                                                                                                 cek_resep = 'Resep Ok' AND $where_jam $where_gshift
                                                                                             GROUP BY 
-                                                                                                DATE(createdatetime)");
-                                                    $row_bukaresep_ok   = mysqli_fetch_assoc($q_bukaresep_ok);
+                                                                                                 CAST(createdatetime as DATE)");
+                                                    $row_bukaresep_ok   = sqlsrv_fetch_array($q_bukaresep_ok, SQLSRV_FETCH_ASSOC);
                                                     
-                                                    $q_bukaresep_tidakok     = mysqli_query($con, "SELECT
-                                                                                                DATE(createdatetime) AS TGL,
+                                                    $q_bukaresep_tidakok     = sqlsrv_query($con, "SELECT
+                                                                                                 CAST(createdatetime as DATE) AS TGL,
                                                                                                 COUNT(nokk) AS tidak_ok
                                                                                             FROM
-                                                                                                tbl_bukaresep 
+                                                                                                db_dying.tbl_bukaresep 
                                                                                             WHERE 
                                                                                                 cek_resep = 'Resep Tidak Ok' AND $where_jam $where_gshift
                                                                                             GROUP BY 
-                                                                                                DATE(createdatetime)");
-                                                    $row_bukaresep_tidakok   = mysqli_fetch_assoc($q_bukaresep_tidakok);
+                                                                                                 CAST(createdatetime as DATE)");
+                                                    $row_bukaresep_tidakok   = sqlsrv_fetch_array($q_bukaresep_tidakok, SQLSRV_FETCH_ASSOC);
                                                     
-                                                    $q_bukaresep_blmdiperiksa     = mysqli_query($con, "SELECT
-                                                                                                            DATE(createdatetime) AS TGL,
+                                                    $q_bukaresep_blmdiperiksa     = sqlsrv_query($con, "SELECT
+                                                                                                             CAST(createdatetime as DATE) AS TGL,
                                                                                                             COUNT(nokk) AS belum_diperiksa
                                                                                                         FROM
-                                                                                                            tbl_bukaresep
+                                                                                                            db_dying.tbl_bukaresep
                                                                                                         WHERE 
-                                                                                                            cek_resep is null AND $where_jam $where_gshift
+                                                                                                            cek_resep is null AND 
+                                                                                                            $where_jam 
+                                                                                                            $where_gshift
                                                                                                         GROUP BY 
-                                                                                                            DATE(createdatetime)");
-                                                    $row_bukaresep_blmdiperiksa   = mysqli_fetch_assoc($q_bukaresep_blmdiperiksa);
+                                                                                                             CAST(createdatetime as DATE)");
+                                                    $row_bukaresep_blmdiperiksa   = sqlsrv_fetch_array($q_bukaresep_blmdiperiksa, SQLSRV_FETCH_ASSOC);
                                                 ?>
                                                 <tr bgcolor="antiquewhite">
                                                     <td align="center"><?= $no++; ?></td>
-                                                    <td align="center"><?= $row_bukaresep['TGL']; ?></td>
+                                                    <td align="center"><?php if($row_bukaresep['TGL']!=NUll or $row_bukaresep['TGL']!=''){
+                                                        echo $row_bukaresep['TGL']->format('Y-m-d');
+                                                    }else echo NULL; ?></td>
                                                     <td align="center"><?= $row_bukaresep['buka_resep']; ?></td>
                                                     <td align="center"><?= $row_bukaresep_ok['ok']; ?></td>
                                                     <td align="center"><?= $row_bukaresep_tidakok['tidak_ok']; ?></td>
