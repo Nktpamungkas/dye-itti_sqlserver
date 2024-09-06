@@ -22,3 +22,13 @@ function cek($value, $format = null) {
 
     return $value;
 }
+
+function array_trim_cek($array) {
+    if(!is_null($array)) {
+        return array_map(function($value) {
+            return !is_null($value) ? trim(cek($value)) : cek($value);
+        }, $array);
+    }
+
+    return NULL;
+}
