@@ -6,33 +6,38 @@
     //disini script laporan anda
 ?>
 <?PHP
-	ini_set("error_reporting", 1);
 	session_start();
     include "../../koneksi.php";
+    include "../../utils/helper.php";
+
     $Awal   = isset($_GET['awal']) ? $_GET['awal'] : '';
     $Akhir  = isset($_GET['akhir']) ? $_GET['akhir'] : '';
     $jamA   = isset($_GET['jam_awal']) ? $_GET['jam_awal'] : '';
     $jamAr  = isset($_GET['jam_akhir']) ? $_GET['jam_akhir'] : '';
     $GShift = isset($_GET['gshift']) ? $_GET['gshift'] : '';
+    
+    // Format start_date based on the length of $jamA
     if (strlen($jamA) == 5) {
         $start_date = $Awal . ' ' . $jamA;
-    } else {
+    } elseif (strlen($jamA) == 4) {
         $start_date = $Awal . ' 0' . $jamA;
-    }
-    if (strlen($jamAr) == 5) {
-        $stop_date  = $Akhir . ' ' . $jamAr;
     } else {
-        $stop_date  = $Akhir . ' 0' . $jamAr;
-    }
-    if($jamA & $jamAr){
-        $where_jam  = "createdatetime BETWEEN '$start_date' AND '$stop_date'";
-    }else{
-        $where_jam  = "DATE(createdatetime) BETWEEN '$Awal' AND '$Akhir'";
+        $start_date = $Awal . ' 00:00';
     }
 
-    if($GShift == 'ALL'){
+    // Format stop_date based on the length of $jamAr
+    if (strlen($jamAr) == 5) {
+        $stop_date = $Akhir . ' ' . $jamAr;
+    } elseif (strlen($jamAr) == 4) {
+        $stop_date = $Akhir . ' 0' . $jamAr;
+    } else {
+        $stop_date = $Akhir . ' 23:59';
+    }
+
+    // Determine the WHERE clause for shift filtering
+    if ($GShift == 'ALL') {
         $where_gshift = "";
-    }else{
+    } else {
         $where_gshift = "AND gshift = '$GShift'";
     }
 ?>
@@ -60,10 +65,10 @@
     </thead>
     <tbody>
         <?php
-            $q_matching_dye    = mysqli_query($con, "SELECT * FROM tbl_matching_dyeing WHERE $where_jam $where_gshift ORDER BY id DESC");
+            $q_matching_dye    = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_matching_dyeing WHERE FORMAT(createdatetime, 'yyyy-MM-dd HH:mm:ss') BETWEEN '$start_date' AND '$stop_date' $where_gshift ORDER BY id DESC");
             $no = 1;
         ?>
-        <?php while ($row_matching_dye = mysqli_fetch_array($q_matching_dye)) { ?>
+        <?php while ($row_matching_dye = sqlsrv_fetch_array($q_matching_dye, SQLSRV_FETCH_ASSOC)) { ?>
             <tr>
                 <td><?= $no++; ?></td>
                 <td><?= $row_matching_dye['nokk'] ?></td>
@@ -73,9 +78,9 @@
                 <td><?= $row_matching_dye['no_order'] ?></td>
                 <td><?= $row_matching_dye['jenis_kain'] ?></td>
                 <td><?= $row_matching_dye['warna'] ?></td>
-                <td><?= $row_matching_dye['jam_terima'] ?></td>
+                <td><?= cek($row_matching_dye['jam_terima'], "Y/m/d H:i:s") ?></td>
                 <td><?= $row_matching_dye['operator_penerima'] ?></td>
-                <td><?= $row_matching_dye['createdatetime_proses'] ?></td>
+                <td><?= cek($row_matching_dye['createdatetime_proses'], "Y/m/d H:i:s") ?></td>
                 <td><?= $row_matching_dye['operator_matcher'] ?></td>
                 <td><?= $row_matching_dye['pemberi_resep'] ?></td>
                 <td><?= $row_matching_dye['acc_resep'] ?></td>

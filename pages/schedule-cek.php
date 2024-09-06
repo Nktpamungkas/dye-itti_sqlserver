@@ -105,12 +105,6 @@ $ck		= isset($_POST['ck']) ? $_POST['ck'] : '';
   $c=0;
   $no=0;
 
-  /*$sql=sqlsrv_query("SELECT a.* FROM tbl_schedule a
-  INNER JOIN tbl_montemp b ON a.id=b.id_schedule 
-  WHERE $nokk ((a.`status`='selesai' AND b.`status`='sedang jalan') or 
-  (a.`status`='sedang jalan' AND b.`status`='selesai') or (mc_from='' and no_urut='' and no_mesin='' 
-  and (a.`status`='sedang jalan' or a.`status`='antri mesin')))");*/	
-	
   $sql=sqlsrv_query($con,"SELECT a.* FROM db_dying.tbl_schedule a
   INNER JOIN db_dying.tbl_montemp b ON a.id=b.id_schedule 
   WHERE $nokk ((not a.[status]=b.[status]) or 

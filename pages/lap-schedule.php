@@ -1,7 +1,8 @@
 <?PHP
 ini_set("error_reporting", 1);
 session_start();
-include"koneksi.php";
+include "koneksi.php";
+include_once 'utils/helper.php';
 
 ?>
 
@@ -112,17 +113,17 @@ $stop_date  = date('Y-m-d', strtotime($Awal . ' +1 day')).' 07:15:00';
   $c=0;
   $no=0;
 	if($GShift=="ALL"){$shft=" ";}else{$shft=" g_shift='$GShift' AND ";}
-	if($Awal!=""){$where=" DATE_FORMAT( tgl_update, '%Y-%m-%d %H:%i:%s' ) BETWEEN '$start_date' AND '$stop_date' ";}
+	if($Awal!=""){$where=" CONVERT( datetime,tgl_update) BETWEEN '$start_date' AND '$stop_date' ";}
 	else{$where=" tgl_update='' ";}
-  $sql=mysqli_query($con,"SELECT
+  $sql=sqlsrv_query($con,"SELECT
 	*
 FROM
-	tbl_schedule
+	db_dying.tbl_schedule
 WHERE	 
 	$where
 ORDER BY
 	kapasitas DESC, no_mesin ASC, no_sch ASC, id DESC");	
-  while($rowd=mysqli_fetch_array($sql)){
+  while($rowd=sqlsrv_fetch_array($sql)){
 	 	$no++;
 		$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
 	?>
@@ -137,7 +138,7 @@ ORDER BY
      <td><?php echo $rowd['warna'];?></td>
      <td align="left"><?php echo $rowd['no_warna'];?></td>
      <td align="center"><?php echo $rowd['lot'];?></td>
-     <td align="center"><?php echo $rowd['tgl_delivery'];?></td>
+     <td align="center"><?php echo cek($rowd['tgl_delivery']) ?></td>
      <td align="center"><?php echo $rowd['rol'];?></td>
      <td align="right"><?php echo $rowd['bruto'];?></td>
      <td><i class="label bg-abu"><?php echo $rowd['ket_status'];?></i><br />
