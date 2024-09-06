@@ -81,8 +81,8 @@ $Fs		= isset($_POST['fasilitas']) ? $_POST['fasilitas'] : '';
         <?php if($_POST['awal']!="") { ?><b>Periode: <?php echo $_POST['awal']." to ".$_POST['akhir']; ?></b>
 		<!--  
 		<div class="btn-group pull-right">
-		  <a href="pages/cetak/reports-harian-produksi.php?&awal=<?php echo $Awal; ?>&akhir=<?php echo $Awal; ?>&shft=<?php echo $GShift; ?>" class="btn btn-danger " target="_blank" data-toggle="tooltip" data-html="true" title="Harian Produksi"><i class="fa fa-print"></i> </a>
-		<a href="pages/cetak/reports-harian-produksi-excel.php?&awal=<?php echo $Awal; ?>&akhir=<?php echo $Awal; ?>&shft=<?php echo $GShift; ?>" class="btn btn-success " target="_blank" data-toggle="tooltip" data-html="true" title="Harian Produksi Excel"><i class="fa fa-file-excel-o"></i> </a>
+		  <a href="pages/cetak/reports-harian-produksi.php?&awal=<?php //echo $Awal; ?>&akhir=<?php //echo $Awal; ?>&shft=<?php //echo $GShift; ?>" class="btn btn-danger " target="_blank" data-toggle="tooltip" data-html="true" title="Harian Produksi"><i class="fa fa-print"></i> </a>
+		<a href="pages/cetak/reports-harian-produksi-excel.php?&awal=<?php //echo $Awal; ?>&akhir=<?php //echo $Awal; ?>&shft=<?php //echo $GShift; ?>" class="btn btn-success " target="_blank" data-toggle="tooltip" data-html="true" title="Harian Produksi Excel"><i class="fa fa-file-excel-o"></i> </a>
 		</div>  
         -->
 		 <a href="pages/cetak/reports-potong-celup.php?&awal=<?php echo $Awal; ?>&akhir=<?php echo $Akhir; ?>&shft=<?php echo $GShift; ?>" class="btn btn-danger pull-right" target="_blank" data-toggle="tooltip" data-html="true" title="Potong Celup"><i class="fa fa-print"></i> Cetak</a> 
@@ -113,36 +113,39 @@ $Fs		= isset($_POST['fasilitas']) ? $_POST['fasilitas'] : '';
   <?php 
   $c=0;
   $no=0;
-	if($GShift=="ALL"){$shft=" ";}else{$shft=" if(ISNULL(d.g_shift),d.g_shift,d.g_shift)='$GShift' AND ";}
-  $sql=mysqli_query($con,"SELECT
-	a.*,
-	b.buyer,
-	b.no_order,
-	b.jenis_kain,
-	b.lot,
-	b.no_mesin,
-	b.warna,
-	b.proses,
-	if(ISNULL(d.g_shift),d.g_shift,d.g_shift) as shft,
-	c.operator,
-	d.comment_warna,
-	d.disposisi,
-	d.acc,
-	d.ket,
-	d.operator as opt_potong,
-	if(c.status='selesai',a.lama_proses,TIME_FORMAT(timediff(now(),c.tgl_buat),'%H:%i')) as lama,
-	b.`status` as sts
+	if($GShift=="ALL"){$shft=" ";}else{$shft=" ISNULL(d.g_shift, '') ='$GShift' AND ";}
+  $sql=sqlsrv_query($con,"SELECT
+    a.*,
+    b.buyer,
+    b.no_order,
+    b.jenis_kain,
+    b.lot,
+    b.no_mesin,
+    b.warna,
+    b.proses,
+    ISNULL(d.g_shift, d.g_shift) AS shft, 
+    c.operator,
+    d.comment_warna,
+    d.disposisi,
+    d.acc,
+    d.ket,
+    d.operator AS opt_potong,
+    CASE
+        WHEN c.status = 'selesai' THEN a.lama_proses
+        ELSE FORMAT(DATEDIFF(MINUTE, c.tgl_buat, GETDATE()) / 60, '00') + ':' + FORMAT(DATEDIFF(MINUTE, c.tgl_buat, GETDATE()) % 60, '00')
+    END AS lama,
+    b.[status] AS sts
 FROM 
-	tbl_schedule b 
-	LEFT JOIN tbl_montemp c ON c.id_schedule = b.id
-	LEFT JOIN tbl_hasilcelup a ON a.id_montemp=c.id
-	LEFT JOIN tbl_potongcelup d ON d.id_hasilcelup=a.id
+    db_dying.tbl_schedule b
+    LEFT JOIN db_dying.tbl_montemp c ON c.id_schedule = b.id
+    LEFT JOIN db_dying.tbl_hasilcelup a ON a.id_montemp = c.id
+    LEFT JOIN db_dying.tbl_potongcelup d ON d.id_hasilcelup = a.id
 WHERE
 	$shft 
-	DATE_FORMAT( d.tgl_buat, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir'  
+  CAST(d.tgl_buat AS DATE) BETWEEN '$Awal' AND '$Akhir'
 	ORDER BY
 	b.no_mesin ASC");	
-  while($rowd=mysqli_fetch_array($sql)){
+  while($rowd=sqlsrv_fetch_array($sql)){
 	 	$no++;
 		$bgcolor = ($col++ & 1) ? 'gainsboro' : 'antiquewhite';
 	?>

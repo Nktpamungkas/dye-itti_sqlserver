@@ -19,7 +19,7 @@
     if($jamA & $jamAr){
         $where_jam  = "createdatetime BETWEEN '$start_date' AND '$stop_date'";
     }else{
-        $where_jam  = "DATE(createdatetime) BETWEEN '$Awal' AND '$Akhir'";
+        $where_jam  = "CAST(createdatetime,DATE) BETWEEN '$Awal' AND '$Akhir'";
     }
 
     if($GShift == 'ALL'){
@@ -129,15 +129,15 @@
         </thead>
         <tbody>
             <?php
-                $q_bukaresep    = mysqli_query($con, "SELECT
+                $q_bukaresep    = sqlsrv_query($con, "SELECT
                                                         *
                                                     FROM
-                                                        tbl_bukaresep 
+                                                        db_dying.tbl_bukaresep 
                                                     WHERE 
                                                         $where_jam $where_gshift");
                 $no = 1;
             ?>
-            <?php while ($row_bukaresep = mysqli_fetch_array($q_bukaresep)) { ?>
+            <?php while ($row_bukaresep = sqlsrv_fetch_array($q_bukaresep)) { ?>
                 <?php
                     $sql_ITXVIEWKK  = db2_exec($conn2, "SELECT * FROM ITXVIEWKK WHERE PRODUCTIONORDERCODE = '$row_bukaresep[nokk]'");
                     $dt_ITXVIEWKK	= db2_fetch_assoc($sql_ITXVIEWKK);
@@ -178,7 +178,9 @@
                     <td><?= number_format($dt_qtyorder['QTY_ORDER'], 2); ?></td>
                     <td><?= $row_bukaresep['jml_gerobak']; ?></td>
                     <td><?= $row_bukaresep['proses']; ?></td>
-                    <td><?= $row_bukaresep['createdatetime']; ?></td>
+                    <td><?php if($row_bukaresep['createdatetime']!=NULL or $row_bukaresep['createdatetime']!=''){
+                        echo $row_bukaresep['createdatetime']->format('Y-m-d H:i:s');
+                    }echo''; ?></td>
                 </tr>
             <?php } ?>
         </tbody>
