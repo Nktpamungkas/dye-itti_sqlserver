@@ -8,8 +8,11 @@ include "../../tgl_indo.php";
 $idkk=$_REQUEST['idkk'];
 $act=$_GET['g'];
 //-
-$qTgl=mysqli_query($con,"SELECT DATE_FORMAT(now(),'%Y-%m-%d') as tgl_skrg, DATE_FORMAT(now(),'%Y-%m-%d')+ INTERVAL 1 DAY as tgl_besok");
-$rTgl=mysqli_fetch_array($qTgl);
+$qTgl=sqlsrv_query($con,"SELECT 
+    FORMAT(GETDATE(), 'yyyy-MM-dd') AS tgl_skrg,
+    FORMAT(DATEADD(DAY, 1, GETDATE()), 'yyyy-MM-dd') AS tgl_besok;
+");
+$rTgl=sqlsrv_fetch_array($qTgl);
 ?>
 <html>
 <head>
@@ -96,38 +99,36 @@ border:hidden;
 	$Awal=$_GET['awal'];
 	$Akhir=$_GET['akhir'];
 	$GShift=$_GET['shft'];	
-	if($GShift=="ALL"){$shft=" ";}else{$shft=" if(ISNULL(d.g_shift),d.g_shift,d.g_shift)='$GShift' AND ";}
-  $sql=mysqli_query($con,"SELECT
-  	a.acc_keluar,
-	b.buyer,
-	b.langganan,
-	b.no_order,
-	b.jenis_kain,
-	b.po,
-	b.lot,
-	b.no_mesin,
-	b.warna,
-	b.no_warna,
-	b.proses,
-	if(ISNULL(d.g_shift),d.g_shift,d.g_shift) as shft,
-	c.operator,
-	c.rol,
-	c.bruto,
-	d.comment_warna,
-	d.disposisi,
-	d.acc,
-	d.ket,
-	d.operator as opt_potong,
-	if(c.status='selesai',a.lama_proses,TIME_FORMAT(timediff(now(),c.tgl_buat),'%H:%i')) as lama,
-	b.`status` as sts
+	if($GShift=="ALL"){$shft=" ";}else{$shft=" ISNULL(d.g_shift, '') ='$GShift' AND ";}
+  $sql=sqlsrv_query($con,"SELECT
+    *,
+    b.buyer,
+    b.no_order,
+    b.jenis_kain,
+    b.lot,
+    b.no_mesin,
+    b.warna,
+    b.proses,
+    ISNULL(d.g_shift, d.g_shift) AS shft, 
+    c.operator,
+    d.comment_warna,
+    d.disposisi,
+    d.acc,
+    d.ket,
+    d.operator AS opt_potong,
+    CASE
+        WHEN c.status = 'selesai' THEN a.lama_proses
+        ELSE FORMAT(DATEDIFF(MINUTE, c.tgl_buat, GETDATE()) / 60, '00') + ':' + FORMAT(DATEDIFF(MINUTE, c.tgl_buat, GETDATE()) % 60, '00')
+    END AS lama,
+    b.[status] AS sts
 FROM 
-	tbl_schedule b 
-	LEFT JOIN tbl_montemp c ON c.id_schedule = b.id
-	LEFT JOIN tbl_hasilcelup a ON a.id_montemp=c.id
-	LEFT JOIN tbl_potongcelup d ON d.id_hasilcelup=a.id
+    db_dying.tbl_schedule b
+    LEFT JOIN db_dying.tbl_montemp c ON c.id_schedule = b.id
+    LEFT JOIN db_dying.tbl_hasilcelup a ON a.id_montemp = c.id
+    LEFT JOIN db_dying.tbl_potongcelup d ON d.id_hasilcelup = a.id
 WHERE
 	$shft 
-	DATE_FORMAT( d.tgl_buat, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir'  
+  CAST(d.tgl_buat AS DATE) BETWEEN '$Awal' AND '$Akhir'
 	ORDER BY
 	b.no_mesin ASC");
   
@@ -135,7 +136,7 @@ WHERE
    
    $c=0;
    
-    while($rowd=mysqli_fetch_array($sql)){
+    while($rowd=sqlsrv_fetch_array($sql)){
 		   ?>
       <tr valign="top">
       <td><div align="center"><?php echo $no;?></div></td>

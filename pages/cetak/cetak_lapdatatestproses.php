@@ -1,15 +1,15 @@
 <?php
-ini_set("error_reporting", 1);
 include "../../koneksi.php";
 include "../../tgl_indo.php";
-//--
-$idkk=$_REQUEST['idkk'];
-$act=$_GET['g'];
-//-
+include "../../utils/helper.php";
+
 $Awal=$_GET['awal'];
 $Akhir=$_GET['akhir'];
-$qTgl=mysqli_query($con,"SELECT DATE_FORMAT(now(),'%d-%b-%y') as tgl_skrg,DATE_FORMAT(now(),'%H:%i:%s') as jam_skrg");
-$rTgl=mysqli_fetch_array($qTgl);
+$qTgl=sqlsrv_query($con,"SELECT 
+    FORMAT(GETDATE(), 'dd-MMM-yy') AS tgl_skrg,
+    FORMAT(GETDATE(), 'HH:mm:ss') AS jam_skrg;
+");
+$rTgl=sqlsrv_fetch_array($qTgl);
 if($Awal!=""){$tgl=substr($Awal,0,10); $jam=$Awal;}else{$tgl=$rTgl['tgl_skrg']; $jam=$rTgl['jam_skrg'];}
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -140,17 +140,12 @@ border:hidden;
 		<?php
         $no=1;
         if($Awal!=""){
-            $qry1=mysqli_query($con,"SELECT * FROM tbl_datatest
-            WHERE DATE_FORMAT( tgl_buat, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir' ORDER BY id ASC");
-        }else{
-            $qry1=mysqli_query($con,"SELECT * FROM tbl_datatest
-            WHERE DATE_FORMAT( tgl_buat, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir' ORDER BY id ASC");
-        }
-        while($row1=mysqli_fetch_array($qry1)){
+            $qry1=sqlsrv_query($con,"SELECT * FROM db_dying.tbl_datatest WHERE CONVERT(DATE, tgl_buat) BETWEEN '$Awal' AND '$Akhir' ORDER BY id ASC");
+        while($row1=sqlsrv_fetch_array($qry1)){
 		 ?>
           <tr valign="top">
             <td align="center" valign="middle"><?php echo $no; ?></td>
-            <td align="center" valign="middle"><?php echo date("d-M-y",strtotime($row1['tgl_buat']));?></td>
+            <td align="center" valign="middle"><?php echo cek($row1['tgl_buat'], "d-M-y");?></td>
             <td align="center" valign="middle"><?php echo $row1['nokk'];?></td>
             <td align="center" valign="middle"><?php echo $row1['langganan'];?></td>
             <td align="center" valign="middle"><?php echo $row1['buyer'];?></td>
@@ -166,6 +161,7 @@ border:hidden;
           </tr>
         <?php $no++;
         } 
+        }
         ?>
         </tbody>
       </table></td>
