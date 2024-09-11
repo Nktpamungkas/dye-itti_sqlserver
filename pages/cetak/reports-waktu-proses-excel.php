@@ -10,15 +10,21 @@ ini_set("error_reporting", 1);
 include "../../koneksi.php";
 include "../../koneksiLAB.php";
 include "../../tgl_indo.php";
+include "../../utils/query.php";
 //--
 $idkk = $_REQUEST['idkk'];
 $act = $_GET['g'];
 //-
-$qTgl = mysqli_query($con, "SELECT DATE_FORMAT(now(),'%Y-%m-%d') as tgl_skrg, DATE_FORMAT(now(),'%Y-%m-%d')+ INTERVAL 1 DAY as tgl_besok");
-$rTgl = mysqli_fetch_array($qTgl);
-$Awal = $_GET['awal'];
-$Akhir = $_GET['akhir'];
+$qTgl = sqlsrv_query($con, "SELECT 
+    CONVERT(date, GETDATE()) AS tgl_skrg,
+    CONVERT(date, DATEADD(DAY, 1, GETDATE())) AS tgl_besok");
+$rTgl = sqlsrv_fetch_array($qTgl);
+$Awal = $_GET['awal'] . " 00:00:00";
+$Akhir = $_GET['akhir'] . " 23:59:59";
 $shft1 = $_GET['shft'];
+// echo $Awal;
+// echo $Akhir;
+// exit();
 ?>
 
 <body>
@@ -57,50 +63,73 @@ $shft1 = $_GET['shft'];
     </tr>
     <?php
     if ($_GET['shft'] == "ALL") {
-      $shft = " ";
+      $shft = null;
     } else {
-      $shft = " if(ISNULL(a.g_shift),b.g_shift,a.g_shift)='$_GET[shft]' AND ";
+      $shft = " AND b.g_shift = '$shft1' ";
     }
-    $sql = mysqli_query($con, "SELECT
-                                a.no_mesin,
-                                a.kapasitas,
-                                b.g_shift,
-                                b.operator_keluar as operator,
-                                a.jenis_kain,
-                                a.langganan,a.buyer,a.no_order,a.warna,a.no_warna,a.lot,
-                                a.proses,
-                                a.kategori_warna,	
-                                if(
-                                  ISNULL(TIMEDIFF(c.tgl_mulai,c.tgl_stop)),b.lama_proses,
-                                  CONCAT(LPAD(FLOOR((((HOUR(b.lama_proses)*60)+MINUTE(b.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))/60),2,0),':',LPAD(((((HOUR(b.lama_proses)*60)+MINUTE(b.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))%60),2,0))) as lama,
-                                b.point,
-                                b.k_resep,
-                                if(a.target<(if(ISNULL(TIMEDIFF(c.tgl_mulai,c.tgl_stop)),(HOUR(b.lama_proses)+round(MINUTE(b.lama_proses)/60,2)),((HOUR(b.lama_proses)+round(MINUTE(b.lama_proses)/60,2))-(HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))+round(MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))/60,2))))),'Over','OK') as ket,
-                                a.target,
-                                c.tgl_buat AS tgl_in,
-                                b.tgl_buat AS tgl_out,
-                                c.bruto,
-                                c.rol,
-                                c.tgl_stop AS tgl_mulai_mesin,
-                                c.tgl_mulai AS tgl_stop_mesin,
-                                c.ket_stopmesin 
-                              FROM
-                                tbl_schedule a
-                                INNER JOIN tbl_montemp c ON a.id = c.id_schedule
-                                INNER JOIN tbl_hasilcelup b ON c.id = b.id_montemp 
-                              WHERE
-                                a.`status` = 'selesai' 
-                                AND DATE_FORMAT( b.tgl_buat, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir'
-                                $shft
-                              ORDER BY
-                                a.kapasitas DESC, a.no_mesin ASC");
+    $sql = sqlsrv_query($con, "SELECT
+                                        a.no_mesin,
+                                        a.kapasitas,
+                                        b.g_shift,
+                                        b.operator_keluar AS operator,
+                                        a.jenis_kain,
+                                        a.langganan,
+                                        a.buyer,
+                                        a.no_order,
+                                        a.warna,
+                                        a.no_warna,
+                                        a.lot,
+                                        a.proses,
+                                        a.kategori_warna,
+                                        CASE
+                                              WHEN c.tgl_mulai IS NULL OR c.tgl_stop IS NULL THEN b.lama_proses
+                                              ELSE 
+                                                CONCAT(
+                                                  CAST(DATEDIFF(SECOND, c.tgl_stop, c.tgl_mulai) / 3600 AS VARCHAR(2)), ':',
+                                                  RIGHT('0' + CAST((DATEDIFF(SECOND, c.tgl_stop, c.tgl_mulai) % 3600) / 60 AS VARCHAR(2)), 2)
+                                                )
+                                            END
+                                        AS lama,
+                                        b.point,
+                                        b.k_resep,
+                                        CASE
+                                            WHEN CONVERT(float, a.target) < 
+                                                CASE
+                                                    WHEN c.tgl_mulai IS NULL OR c.tgl_stop IS NULL THEN
+                                                        CONVERT(float,REPLACE(b.lama_proses, ':', '.'))  
+                                                    ELSE
+                                                        DATEDIFF(SECOND, c.tgl_stop, c.tgl_mulai) / 3600.0  
+                                                END
+                                            THEN 'Over'
+                                            ELSE 'OK'
+                                        END AS ket,
+                                        a.target,
+                                        c.tgl_buat AS tgl_in,
+                                        b.tgl_buat AS tgl_out,
+                                        c.tgl_stop AS tgl_mulai_mesin,
+                                        c.tgl_mulai AS tgl_stop_mesin,
+                                        c.ket_stopmesin                        
+                                        FROM
+                                          db_dying.tbl_schedule a
+                                          INNER JOIN db_dying.tbl_montemp c ON a.id = c.id_schedule
+                                          INNER JOIN db_dying.tbl_hasilcelup b ON c.id = b.id_montemp 
+                                        WHERE
+                                          a.status = 'selesai' 
+                                          AND CONVERT(date, b.tgl_buat) BETWEEN '$Awal' AND '$Akhir'
+                                          $shft
+                                        ORDER BY
+                                          a.kapasitas DESC, a.no_mesin ASC");
+
+    if (!$sql) {
+      var_dump(sqlsrv_errors());
+    }
 
     $no = 1;
     $totrol = 0;
     $totberat = 0;
     $c = 0;
 
-    while ($rowd = mysqli_fetch_array($sql)) {
+    while ($rowd = resultSelect(sqlsrv_fetch_array($sql))) {
     ?>
       <tr valign="top">
         <td><?php echo $no; ?></td>
@@ -117,7 +146,7 @@ $shft1 = $_GET['shft'];
         <td>'<?php echo $rowd['lot']; ?></td>
         <td align="right"><?php echo $rowd['bruto']; ?></td>
         <td align="center"><?php echo $rowd['proses']; ?></td>
-        <td align="center"><?php echo $rowd['target']; ?></td>
+        <td align="center"><?php echo (float) $rowd['target']; ?></td>
         <td><?php echo $rowd['ket'] . "<br>" . $rowd['sts']; ?></td>
         <td><?php echo $rowd['k_resep']; ?></td>
         <td><?php echo $rowd['tgl_in']; ?></td>
@@ -126,14 +155,21 @@ $shft1 = $_GET['shft'];
         <td><?= $rowd['tgl_mulai_mesin']; ?></td>
         <td><?= $rowd['tgl_stop_mesin']; ?></td>
         <td>
-        <?php
-          $waktuawal_stopmesin         = date_create($rowd['tgl_mulai_mesin']);
-          $waktuakhir_stopmesin        = date_create($rowd['tgl_stop_mesin']);
+          <?php
+          $tgl_mulai_mesin = $row1['tgl_mulai_mesin'];
+          $tgl_stop_mesin = $row1['tgl_stop_mesin'];
 
-          $diff_stopmesin              = date_diff($waktuawal_stopmesin, $waktuakhir_stopmesin);
-          // echo sprintf("%02d", $diff_stopmesin->h) . ':'; echo sprintf("%02d", $diff_stopmesin->i);
-          echo $diff_stopmesin->d . ' hari, '; echo $diff_stopmesin->h . ' jam, '; echo $diff_stopmesin->i . ' menit '; 
-        ?>
+          if ($tgl_mulai_mesin != null && $tgl_stop_mesin != null) {
+            $diff_stopmesin              = date_diff($waktuawal_stopmesin, $waktuakhir_stopmesin);
+            echo $diff_stopmesin->d . ' hari, ';
+            echo $diff_stopmesin->h . ' jam, ';
+            echo $diff_stopmesin->i . ' menit ';
+          } else {
+            echo '0' . ' hari, ';
+            echo '0' . ' jam, ';
+            echo '0' . ' menit ';
+          }
+          ?>
         </td>
         <td><?= $rowd['ket_stopmesin']; ?></td>
         <td><?php echo $rowd['point']; ?></td>
