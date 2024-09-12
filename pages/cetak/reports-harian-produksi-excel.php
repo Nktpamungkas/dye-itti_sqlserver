@@ -14,8 +14,10 @@ include "../../tgl_indo.php";
 $idkk = $_REQUEST['idkk'];
 $act = $_GET['g'];
 //-
-$qTgl = mysqli_query($con, "SELECT DATE_FORMAT(now(),'%Y-%m-%d') as tgl_skrg, DATE_FORMAT(now(),'%Y-%m-%d')+ INTERVAL 1 DAY as tgl_besok");
-$rTgl = mysqli_fetch_array($qTgl);
+$qTgl = sqlsrv_query($con, "SELECT 
+    CONVERT(date, GETDATE()) AS tgl_skrg,
+    CONVERT(date, DATEADD(DAY, 1, GETDATE())) AS tgl_besok");
+$rTgl = sqlsrv_fetch_array($qTgl);
 $Awal = $_GET['awal'];
 $Akhir = $_GET['akhir'];
 if ($Awal == $Akhir) {
@@ -62,15 +64,6 @@ $shft = $_GET['shft'];
       <th colspan="4" bgcolor="#99FF99">STOP MESIN</th>
       <th rowspan="2" bgcolor="#99FF99">LAMA STOP</th>
       <th rowspan="2" bgcolor="#99FF99">KODE STOP</th>
-      <!-- <th colspan="4" bgcolor="#99FF99">STOP MESIN 2</th>
-      <th rowspan="2" bgcolor="#99FF99">LAMA STOP 2</th>
-      <th rowspan="2" bgcolor="#99FF99">KODE STOP 2</th>
-      <th colspan="4" bgcolor="#99FF99">STOP MESIN 3</th>
-      <th rowspan="2" bgcolor="#99FF99">LAMA STOP 3</th>
-      <th rowspan="2" bgcolor="#99FF99">KODE STOP 3</th>
-      <th colspan="4" bgcolor="#99FF99">STOP MESIN 4</th>
-      <th rowspan="2" bgcolor="#99FF99">LAMA STOP 4</th>
-      <th rowspan="2" bgcolor="#99FF99">KODE STOP 4</th> -->
       <th rowspan="2" bgcolor="#99FF99">Acc Keluar Kain</th>
       <th rowspan="2" bgcolor="#99FF99">Operator</th>
       <th rowspan="2" bgcolor="#99FF99">NoKK</th>
@@ -130,60 +123,79 @@ $shft = $_GET['shft'];
       <th bgcolor="#99FF99">IN</th>
       <th bgcolor="#99FF99">TGL</th>
       <th bgcolor="#99FF99">OUT</th>
-
-      <!-- <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">JAM</th>
-      <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">S/D</th>
-      
-      <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">JAM</th>
-      <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">S/D</th>
-      
-      <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">JAM</th>
-      <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">S/D</th>
-      
-      <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">JAM</th>
-      <th bgcolor="#99FF99">TGL</th>
-      <th bgcolor="#99FF99">S/D</th> -->
     </tr>
     <?php
-      $Awal = $_GET['awal'];
-      $Akhir = $_GET['akhir'];
-      $Tgl = substr($Awal, 0, 10);
-      if ($Awal != $Akhir) {
-        $Where = " DATE_FORMAT(c.tgl_update, '%Y-%m-%d %H:%i') BETWEEN '$Awal' AND '$Akhir' ";
-      } else {
-        $Where = " DATE_FORMAT(c.tgl_update, '%Y-%m-%d')='$Tgl' ";
-      }
-      if ($_GET['shft'] == "ALL") {
-        $shft = " ";
-      } else {
-        $shft = " if(ISNULL(a.g_shift),c.g_shift,a.g_shift)='$_GET[shft]' AND ";
-      }
-      $sql = mysqli_query($con, "SELECT x.*, a.no_mesin as mc 
-                                    FROM tbl_mesin a
+    $Awal = $_GET['awal'];
+    $Akhir = $_GET['akhir'];
+    $Tgl = substr($Awal, 0, 10);
+    if ($Awal != $Akhir) {
+      $Where = " CONVERT(date, c.tgl_update) BETWEEN '$Awal' AND '$Akhir' ";
+    } else {
+      $Where = " CONVERT(date , c.tgl_update) = '$Tgl' ";
+    }
+    if ($_GET['shft'] == "ALL") {
+      $shftQ = null;
+    } else {
+      $shftQ = " ISNULL(a.g_shift, c.g_shift) = '$_GET[shft]' AND ";
+    }
+    $sql = sqlsrv_query($con, "SELECT x.*, a.no_mesin as mc 
+                                    FROM db_dying.tbl_mesin a
                                         RIGHT JOIN
                                         (SELECT
                                         a.kd_stop,
                                         a.mulai_stop,
                                         a.selesai_stop,
-                                        a.ket,	if(ISNULL(TIMEDIFF(c.tgl_mulai,c.tgl_stop)),a.lama_proses,CONCAT(LPAD(FLOOR((((HOUR(a.lama_proses)*60)+MINUTE(a.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))/60),2,0),':',LPAD(((((HOUR(a.lama_proses)*60)+MINUTE(a.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))%60),2,0))) as lama_proses,
+                                        a.ket,	
                                         a.status as sts,
-                                        TIME_FORMAT(if(ISNULL(TIMEDIFF(c.tgl_mulai,c.tgl_stop)),a.lama_proses,CONCAT(LPAD(FLOOR((((HOUR(a.lama_proses)*60)+MINUTE(a.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))/60),2,0),':',LPAD(((((HOUR(a.lama_proses)*60)+MINUTE(a.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))%60),2,0))),'%H') as jam,
-                                        TIME_FORMAT(if(ISNULL(TIMEDIFF(c.tgl_mulai,c.tgl_stop)),a.lama_proses,CONCAT(LPAD(FLOOR((((HOUR(a.lama_proses)*60)+MINUTE(a.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))/60),2,0),':',LPAD(((((HOUR(a.lama_proses)*60)+MINUTE(a.lama_proses))-((HOUR(TIMEDIFF(c.tgl_mulai,c.tgl_stop))*60)+MINUTE(TIMEDIFF(c.tgl_mulai,c.tgl_stop))))%60),2,0))),'%i') as menit,
+                                        CASE 
+                                        WHEN c.tgl_mulai IS NULL OR c.tgl_stop IS NULL THEN a.lama_proses
+                                        ELSE 
+                                          CASE 
+                                            WHEN DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) < 0 THEN a.lama_proses 
+                                            ELSE 
+                                              CONCAT(
+                                                RIGHT('00' + CAST(FLOOR((DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) / 60)) AS VARCHAR(2)), 2),
+                                                ':',
+                                                RIGHT('00' + CAST((DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) % 60) AS VARCHAR(2)), 2)
+                                              )
+                                        END END AS lama_proses,
+                                        SUBSTRING(
+                                        CASE 
+                                        WHEN c.tgl_mulai IS NULL OR c.tgl_stop IS NULL THEN a.lama_proses
+                                        ELSE 
+                                          CASE 
+                                            WHEN DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) < 0 THEN a.lama_proses 
+                                            ELSE 
+                                              CONCAT(
+                                                RIGHT('00' + CAST(FLOOR((DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) / 60)) AS VARCHAR(2)), 2),
+                                                ':',
+                                                RIGHT('00' + CAST((DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) % 60) AS VARCHAR(2)), 2)
+                                              )
+                                        END END,1,2) AS jam,
+                                        SUBSTRING(
+                                        CASE 
+                                        WHEN c.tgl_mulai IS NULL OR c.tgl_stop IS NULL THEN a.lama_proses
+                                        ELSE 
+                                          CASE 
+                                            WHEN DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) < 0 THEN a.lama_proses 
+                                            ELSE 
+                                              CONCAT(
+                                                RIGHT('00' + CAST(FLOOR((DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) / 60)) AS VARCHAR(2)), 2),
+                                                ':',
+                                                RIGHT('00' + CAST((DATEDIFF(MINUTE, c.tgl_mulai, c.tgl_stop) % 60) AS VARCHAR(2)), 2)
+                                              )
+                                        END END,4,5) AS menit,
                                         a.point,
-                                        DATE_FORMAT(a.mulai_stop,'%Y-%m-%d') as t_mulai,
-                                        DATE_FORMAT(a.selesai_stop,'%Y-%m-%d') as t_selesai,
-                                        TIME_FORMAT(a.mulai_stop,'%H:%i') as j_mulai,
-                                        TIME_FORMAT(a.selesai_stop,'%H:%i') as j_selesai,
-                                        TIMESTAMPDIFF(MINUTE,a.mulai_stop,a.selesai_stop) as lama_stop_menit,
+                                        CONVERT(DATE, a.mulai_stop) AS t_mulai,
+                                        CONVERT(DATE, a.selesai_stop) AS t_selesai,
+                                        FORMAT(a.mulai_stop, 'HH:mm') AS j_mulai,
+                                        FORMAT(a.selesai_stop, 'HH:mm') AS j_selesai,
+                                        DATEDIFF(MINUTE, a.mulai_stop, a.selesai_stop) AS lama_stop_menit,
                                         a.acc_keluar,
-                                        if(a.proses='' or ISNULL(a.proses),b.proses,a.proses) as proses,
+                                        CASE
+                                            WHEN a.proses = '' OR a.proses IS NULL THEN b.proses
+                                            ELSE a.proses
+                                        END AS proses,
                                         b.buyer,
                                         b.langganan,
                                         b.no_order,
@@ -211,11 +223,11 @@ $shft = $_GET['shft'];
                                         c.nozzle,
                                         c.plaiter,
                                         c.blower,
-                                        DATE_FORMAT(c.tgl_buat,'%Y-%m-%d') as tgl_in,
-                                        DATE_FORMAT(a.tgl_buat,'%Y-%m-%d') as tgl_out,
-                                        DATE_FORMAT(c.tgl_buat,'%H:%i') as jam_in,
-                                        DATE_FORMAT(a.tgl_buat,'%H:%i') as jam_out,
-                                        if(ISNULL(a.g_shift),c.g_shift,a.g_shift) as shft,
+                                        CONVERT(date, c.tgl_buat) AS tgl_in,
+                                        CONVERT(date, a.tgl_buat) AS tgl_out,
+                                        FORMAT(c.tgl_buat, 'HH:mm') AS jam_in,
+                                        FORMAT(a.tgl_buat, 'HH:mm') AS jam_out,
+                                        ISNULL(a.g_shift, c.g_shift) AS shft,
                                         a.operator_keluar,
                                         a.k_resep,
                                         a.status,
@@ -259,56 +271,63 @@ $shft = $_GET['shft'];
                                         a.point2,
                                         c.note_wt
                                       FROM
-                                        tbl_schedule b
-                                          LEFT JOIN  tbl_montemp c ON c.id_schedule = b.id
-                                          LEFT JOIN tbl_hasilcelup a ON a.id_montemp=c.id	
+                                        db_dying.tbl_schedule b
+                                          LEFT JOIN db_dying.tbl_montemp c ON c.id_schedule = b.id
+                                          LEFT JOIN db_dying.tbl_hasilcelup a ON a.id_montemp=c.id	
                                       WHERE
-                                        $shft 
+                                        $shftQ
                                         $Where
-                                        )x ON (a.no_mesin=x.no_mesin or a.no_mc_lama=x.no_mesin) ORDER BY a.no_mesin");
+                                        )x ON (a.no_mesin=x.no_mesin OR a.no_mc_lama=x.no_mesin) ORDER BY a.no_mesin");
 
-      $no = 1;
+    $no = 1;
 
-      $c = 0;
-      $totrol = 0;
-      $totberat = 0;
+    $c = 0;
+    $totrol = 0;
+    $totberat = 0;
 
-      while ($rowd = mysqli_fetch_array($sql)) {
-        if ($_GET['shft'] == "ALL") {
-          $shftSM = " ";
-        } else {
-          $shftSM = " g_shift='$_GET[shft]' AND ";
-        }
-        $sqlSM = mysqli_query($con, "SELECT *, TIME_FORMAT(timediff(selesai,mulai),'%H:%i') as menitSM,
-          DATE_FORMAT(mulai,'%Y-%m-%d') as tgl_masuk,
-          DATE_FORMAT(selesai,'%Y-%m-%d') as tgl_selesai,
-          TIME_FORMAT(mulai,'%H:%i') as jam_masuk,
-          TIME_FORMAT(selesai,'%H:%i') as jam_selesai,
-          kapasitas as kapSM,
-          g_shift as shiftSM
-          FROM tbl_stopmesin
+    while ($rowd = sqlsrv_fetch_array($sql)) {
+      if ($_GET['shft'] == "ALL") {
+        $shftSM = " ";
+      } else {
+        $shftSM = " g_shift='$_GET[shft]' AND ";
+      }
+      $sqlSM = sqlsrv_query($con, "SELECT *, 
+          FORMAT(
+                DATEADD(MINUTE, 
+                        DATEDIFF(MINUTE, mulai, selesai), 
+                        '1900-01-01'
+                       ), 
+                'HH:mm'
+            ) AS menitSM,
+          CONVERT(date, mulai) AS tgl_masuk,
+          CONVERT(date, selesai) AS tgl_selesai,
+          FORMAT(mulai, 'HH:mm') AS jam_masuk,
+          FORMAT(selesai, 'HH:mm') AS jam_selesai,
+          kapasitas AS kapSM,
+          g_shift AS shiftSM
+          FROM db_dying.tbl_stopmesin
           WHERE $shftSM tgl_update BETWEEN '$_GET[awal]' AND '$_GET[akhir]' AND no_mesin='$rowd[mc]'");
-        $rowSM = mysqli_fetch_array($sqlSM);
-        if (strlen($rowd['rol']) > 5) {
-          $jk = strlen($rowd['rol']) - 5;
-          $rl = substr($rowd['rol'], 0, $jk);
-        } else {
-          $rl = $rowd['rol'];
-        }
-    ?>
+      $rowSM = sqlsrv_fetch_array($sqlSM);
+      if (strlen($rowd['rol']) > 5) {
+        $jk = strlen($rowd['rol']) - 5;
+        $rl = substr($rowd['rol'], 0, $jk);
+      } else {
+        $rl = $rowd['rol'];
+      }
+      ?>
       <tr valign="top">
         <td><?php echo $no; ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['shiftSM'];
-            } else {
-              echo $rowd['shft'];
-            } ?></td>
+          echo $rowSM['shiftSM'];
+        } else {
+          echo $rowd['shft'];
+        } ?></td>
         <td>'<?php echo $rowd['mc']; ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['kapSM'];
-            } else {
-              echo $rowd['kapasitas'];
-            } ?></td>
+          echo $rowSM['kapSM'];
+        } else {
+          echo $rowd['kapasitas'];
+        } ?></td>
         <td><?php echo $rowd['langganan']; ?></td>
         <td><?php echo $rowd['buyer']; ?></td>
         <td><?php echo $rowd['no_order']; ?></td>
@@ -317,116 +336,99 @@ $shft = $_GET['shft'];
         <td><?php echo $rowd['kategori_warna']; ?></td>
         <td>'<?php echo $rowd['lot']; ?></td>
         <td><?php if ($rowd['tgl_out'] != "") {
-              $rol = $rowd['rol'];
-            } else {
-              $rol = 0;
-            }
-            echo $rol; ?></td>
+          $rol = $rowd['rol'];
+        } else {
+          $rol = 0;
+        }
+        echo $rol; ?></td>
         <td><?php if ($rowd['tgl_out'] != "") {
-              $brt = $rowd['bruto'];
-            } else {
-              $brt = 0;
-            }
-            echo $brt; ?></td>
+          $brt = $rowd['bruto'];
+        } else {
+          $brt = 0;
+        }
+        echo $brt; ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['proses'];
-            } else {
-              echo $rowd['proses'];
-            } ?></td>
+          echo $rowSM['proses'];
+        } else {
+          echo $rowd['proses'];
+        } ?></td>
         <td><?php echo $rowd['loading']; ?></td>
         <td>'<?php echo $rowd['l_r']; ?></td>
         <td><?php echo $rowd['pakai_air']; ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['keterangan'] . "" . $rowSM['no_stop'];
-            } else {
-              echo $rowd['ket'] . "" . $rowd['status'];
-            } ?><?php if ($rowd['kk_kestabilan'] == "1" and $rowd['kk_normal'] == "0") {
-                  echo "<br>Test Kestabilan";
-                } ?></td>
+          echo $rowSM['keterangan'] . "" . $rowSM['no_stop'];
+        } else {
+          echo $rowd['ket'] . "" . $rowd['status'];
+        } ?><?php if ($rowd['kk_kestabilan'] == "1" and $rowd['kk_normal'] == "0") {
+           echo "<br>Test Kestabilan";
+         } ?></td>
         <td><?php echo $rowd['k_resep']; ?></td>
         <td>
-          <?php 
-            // if ($rowd['resep'] == "Baru") {
-            //   echo "R.B";
-            // }
-            // if ($rowd['resep'] == "Lama") {
-            //   echo "R.L";
-            // }
-            // if ($rowd['resep'] == "Setting") {
-            //   echo "R.S";
-            // }
+          <?php
+          // if ($rowd['resep'] == "Baru") {
+          //   echo "R.B";
+          // }
+          // if ($rowd['resep'] == "Lama") {
+          //   echo "R.L";
+          // }
+          // if ($rowd['resep'] == "Setting") {
+          //   echo "R.S";
+          // }
           ?>
           <?= $rowd['resep']; ?>
         </td>
         <td><?php echo $rowd['sts']; ?></td>
         <td><?php echo $rowd['dyestuff']; ?></td>
         <td><?php echo $rowd['energi']; ?></td>
-        <td><?php echo $rowd['tgl_in']; ?></td>
+        <td><?php echo ($rowd['tgl_in'] != null or $rowd['tgl_in'] != "") ? $rowd['tgl_in']->format('Y-m-d H:i') : ""; ?>
+        </td>
         <td><?php echo $rowd['jam_in']; ?></td>
-        <td><?php echo $rowd['tgl_out']; ?></td>
+        <td>
+          <?php echo ($rowd['tgl_out'] != null or $rowd['tgl_out'] != "") ? $rowd['tgl_out']->format('Y-m-d H:i') : ""; ?>
+        </td>
         <td><?php echo $rowd['jam_out']; ?></td>
         <td>
           <?php
-            if ($rowd['lama_proses'] != "") {
-              echo $rowd['jam'] . ":" . $rowd['menit'];
-            } 
+          if ($rowd['lama_proses'] != "") {
+            echo $rowd['jam'] . ":" . $rowd['menit'];
+          }
           ?>
         </td>
         <td><?php echo $rowd['point2']; ?></td>
 
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['tgl_masuk'];
-            } else {
-              echo $rowd['t_mulai'];
-            } ?></td>
+          echo $rowSM['tgl_masuk'];
+        } else {
+          echo $rowd['t_mulai'];
+        } ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['jam_masuk'];
-            } else {
-              echo $rowd['j_mulai'];
-            } ?></td>
+          echo $rowSM['jam_masuk'];
+        } else {
+          echo $rowd['j_mulai'];
+        } ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['tgl_selesai'];
-            } else {
-              echo $rowd['t_selesai'];
-            } ?></td>
+          echo $rowSM['tgl_selesai'];
+        } else {
+          echo $rowd['t_selesai'];
+        } ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['jam_selesai'];
-            } else {
-              echo $rowd['j_selesai'];
-            } ?></td>
+          echo $rowSM['jam_selesai'];
+        } else {
+          echo $rowd['j_selesai'];
+        } ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['menitSM'];
-            } else if ($rowd['lama_stop_menit'] != "") {
-              $jam = floor(round($rowd['lama_stop_menit']) / 60);
-              $menit = round($rowd['lama_stop_menit']) % 60;
-              echo $jam . ":" . $menit;
-            } ?></td>
+          echo $rowSM['menitSM'];
+        } else if ($rowd['lama_stop_menit'] != "") {
+          $jam = floor(round($rowd['lama_stop_menit']) / 60);
+          $menit = round($rowd['lama_stop_menit']) % 60;
+          echo $jam . ":" . $menit;
+        } ?></td>
         <td><?php if ($rowd['langganan'] == "" and substr($rowd['proses'], 0, 10) != "Cuci Mesin") {
-              echo $rowSM['kd_stopmc'];
-            } else {
-              echo $rowd['kd_stop'];
-            } ?></td>
-        
-        <!-- <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td> -->
+          echo $rowSM['kd_stopmc'];
+        } else {
+          echo $rowd['kd_stop'];
+        } ?></td>
+
 
         <td><?php echo $rowd['acc_keluar']; ?></td>
         <td><?php echo $rowd['operator_keluar']; ?></td>
@@ -438,7 +440,9 @@ $shft = $_GET['shft'];
         <td><?php echo $rowd['no_hanger']; ?></td>
         <td><?php echo $rowd['no_item']; ?></td>
         <td><?php echo $rowd['po']; ?></td>
-        <td><?php echo $rowd['tgl_delivery']; ?></td>
+        <td>
+          <?php echo ($rowd['tgl_delivery'] != null or $rowd['tgl_delivery'] != "") ? $rowd['tgl_delivery']->format('Y-m-d H:i') : ""; ?>
+        </td>
         <td><?php echo $rowd['proses_point']; ?></td>
         <td><?php echo $rowd['penanggung_jawab']; ?></td>
         <td><?php echo $rowd['analisa']; ?></td>
@@ -482,8 +486,8 @@ $shft = $_GET['shft'];
         <td><?= $rowd['operator']; ?></td>
         <td>'
           <?php
-          $q_lot    = db2_exec($conn2, "SELECT * FROM ITXVIEWKK WHERE PRODUCTIONDEMANDCODE = '$rowd[nodemand]'");
-          $d_lot    = db2_fetch_assoc($q_lot);
+          $q_lot = db2_exec($conn2, "SELECT * FROM ITXVIEWKK WHERE PRODUCTIONDEMANDCODE = '$rowd[nodemand]'");
+          $d_lot = db2_fetch_assoc($q_lot);
           echo $d_lot['LOT'];
           ?>
         </td>
@@ -494,7 +498,7 @@ $shft = $_GET['shft'];
         <td><?= $rowd['ket_status']; ?></td>
         <td><?= $rowd['note_wt']; ?></td>
       </tr>
-    <?php
+      <?php
       $totrol += $rol;
       $totberat += $brt;
       $no++;

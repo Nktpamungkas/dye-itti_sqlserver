@@ -3,11 +3,12 @@
 ini_set("error_reporting", 1);
 include "../../koneksi.php";
 include "../../koneksiLAB.php";
+include_once "../../utils/helper.php";
 //--
 $idkk = $_REQUEST['idkk'];
 $act = $_GET['g'];
-$sqlbg = mysqli_query($con, "select * from tbl_schedule where id='$_GET[ids]'");
-$rowbg = mysqli_fetch_array($sqlbg);
+$sqlbg = sqlsrv_query($con, "select * from db_dying.tbl_schedule where id='$_GET[ids]'");
+$rowbg = sqlsrv_fetch_array($sqlbg);
 //-
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -163,10 +164,10 @@ $rowbg = mysqli_fetch_array($sqlbg);
 
 <body>
   <?php
-  $sqlsmp1 = mysqli_query($con, "SELECT * FROM tbl_schedule where id='$_GET[ids]'");
-  $rowmt = mysqli_fetch_array($sqlsmp1);
-  $sqlsmp2 = mysqli_query($con, "SELECT * FROM tbl_montemp where id='$_GET[idm]'");
-  $rowmt2 = mysqli_fetch_array($sqlsmp2);
+  $sqlsmp1 = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_schedule where id='$_GET[ids]'");
+  $rowmt = sqlsrv_fetch_array($sqlsmp1);
+  $sqlsmp2 = sqlsrv_query($con, "SELECT * FROM db_dying.tbl_montemp where id='$_GET[idm]'");
+  $rowmt2 = sqlsrv_fetch_array($sqlsmp2);
   if ($rowmt['kapasitas'] > 0) {
     $loading = round($rowmt2['bruto'] / $rowmt['kapasitas'], 4) * 100;
   }
@@ -214,9 +215,7 @@ $rowbg = mysqli_fetch_array($sqlbg);
       <td width="10%" style="border-right:0px #000000 solid;">
         <pre>Tanggal</pre>
       </td>
-      <td colspan="2" style="border-left:0px #000000 solid;">: <?php if ($rowmt2['tgl_buat'] != "") {
-                                                                  echo date("d-m-Y", strtotime($rowmt2['tgl_buat']));
-                                                                } ?></td>
+      <td colspan="2" style="border-left:0px #000000 solid;">: <?php echo cek($rowmt2['tgl_buat']);?></td>
     </tr>
     <tr>
       <td style="border-right:0px #000000 solid;">
@@ -618,14 +617,10 @@ $rowbg = mysqli_fetch_array($sqlbg);
     </tr>
     <tr>
       <td>Tanggal </td>
-      <td align="center"><?php if ($rowmt2['tgl_buat'] != "") {
-                            echo date("d-m-Y", strtotime($rowmt2['tgl_buat']));
-                          } ?></td>
+      <td align="center"><?php echo cek($rowmt2['tgl_buat'],'d-m-Y'); ?></td>
       <td>&nbsp;</td>
       <td>&nbsp;</td>
-      <td align="center"><?php if ($rowmt2['tgl_buat'] != "") {
-                            echo date("d-m-Y", strtotime($rowmt2['tgl_buat']));
-                          } ?></td>
+      <td align="center"><?php echo cek($rowmt2['tgl_buat'], 'd-m-Y'); ?></td>
     </tr>
     <tr>
       <td valign="top" height="30">Tanda Tangan</td>
