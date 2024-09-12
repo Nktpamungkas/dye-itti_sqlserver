@@ -1,7 +1,7 @@
 <?PHP
 ini_set("error_reporting", 1);
 session_start();
-include"koneksi.php";
+include "koneksi.php";
 
 ?>
 
@@ -93,25 +93,29 @@ $Akhir	= isset($_POST['akhir']) ? $_POST['akhir'] : '';
             </tr>
         </thead>
         <tbody>
-          <?php
-            $no=1;
-            if($Awal!=""){
-            $qry1=mysqli_query($con,"SELECT a.*, a.id as id_a, d.* 
-            FROM tbl_salahresep a 
-            LEFT JOIN tbl_hasilcelup b ON a.id_celup=b.id
-            LEFT JOIN tbl_montemp c ON b.id_montemp=c.id 
-            LEFT JOIN tbl_schedule d ON c.id_schedule=d.id 
-            WHERE DATE_FORMAT( a.tgl_buat, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir' ORDER BY a.id ASC");
-            }else{
-                $qry1=mysqli_query($con,"SELECT a.*, d.* 
-                FROM tbl_salahresep a 
-                LEFT JOIN tbl_hasilcelup b ON a.id_celup=b.id
-                LEFT JOIN tbl_montemp c ON b.id_montemp=c.id 
-                LEFT JOIN tbl_schedule d ON c.id_schedule=d.id 
-                WHERE DATE_FORMAT( a.tgl_buat, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir' ORDER BY a.id ASC");
-            }
-			while($row1=mysqli_fetch_array($qry1)){
-		 ?>
+        <?php
+              $no = 1;
+              if ($Awal != "") {
+                $qry1 = sqlsrv_query($con, "SELECT a.*, a.id as id_a, d.* 
+                    FROM db_dying.tbl_salahresep a 
+                    LEFT JOIN db_dying.tbl_hasilcelup b ON a.id_celup=b.id
+                    LEFT JOIN db_dying.tbl_montemp c ON b.id_montemp=c.id 
+                    LEFT JOIN db_dying.tbl_schedule d ON c.id_schedule=d.id 
+                    WHERE CONVERT(date, a.tgl_buat) BETWEEN '$Awal' AND '$Akhir' 
+                    ORDER BY a.id ASC
+                ");
+              } else {
+                $qry1 = sqlsrv_query($con, "SELECT a.*, d.* 
+                    FROM db_dying.tbl_salahresep a 
+                    LEFT JOIN db_dying.tbl_hasilcelup b ON a.id_celup=b.id
+                    LEFT JOIN db_dying.tbl_montemp c ON b.id_montemp=c.id 
+                    LEFT JOIN db_dying.tbl_schedule d ON c.id_schedule=d.id 
+                    WHERE CONVERT(date, a.tgl_buat) BETWEEN '$Awal' AND '$Akhir' 
+                    ORDER BY a.id ASC
+                ");
+              }
+              while ($row1 = sqlsrv_fetch_array($qry1)) {
+              ?>
           <tr bgcolor="<?php echo $bgcolor; ?>">
             <td align="center"><?php echo $no; ?></td>
             <td align="center"><div class="btn-group">
