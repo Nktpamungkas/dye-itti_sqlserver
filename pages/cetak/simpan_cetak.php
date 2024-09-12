@@ -125,11 +125,13 @@ where ID_No='$row[ID_NO]' and STEP_NO='$rowst[STEP_NO]' order by Step_NO Desc";
 			
 		echo "<hr>";
 		
+			
 //--
-	}//end detail
+	
+	//end detail
 	//echo "<hr size='2' style='outline-style:double' />";
 	//echo "<hr>";
-}?>
+?>
 <script>
 //alert('cetak');window.print();
 </script>
