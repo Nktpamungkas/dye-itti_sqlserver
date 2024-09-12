@@ -6,6 +6,7 @@
     $jamA   = $_GET['jam_awal'];
     $jamAr  = $_GET['jam_akhir'];
     $GShift = $_GET['gshift'];
+    // var_dump($jamA);
     if (strlen($jamA) == 5) {
         $start_date = $Awal . ' ' . $jamA;
     } else {
@@ -16,12 +17,12 @@
     } else {
         $stop_date  = $Akhir . ' 0' . $jamAr;
     }
-    if($jamA & $jamAr){
+    if($jamA!="" or $jamA != NULL  & $jamAr!="" or $jamAr != NULL){
         $where_jam  = "createdatetime BETWEEN '$start_date' AND '$stop_date'";
     }else{
-        $where_jam  = "CAST(createdatetime,DATE) BETWEEN '$Awal' AND '$Akhir'";
+        $where_jam  = "CAST(createdatetime as DATE) BETWEEN '$Awal' AND '$Akhir'";
     }
-
+// var_dump($where_jam);
     if($GShift == 'ALL'){
         $where_gshift = "";
     }else{

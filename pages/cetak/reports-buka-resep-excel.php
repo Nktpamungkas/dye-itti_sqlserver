@@ -26,7 +26,7 @@ if (strlen($jamAr) == 5) {
 if ($jamA & $jamAr) {
     $where_jam  = "createdatetime BETWEEN '$start_date' AND '$stop_date'";
 } else {
-    $where_jam  = "CAST(createdatetime,DATE) BETWEEN '$Awal' AND '$Akhir'";
+    $where_jam  = "CAST(createdatetime as DATE) BETWEEN '$Awal' AND '$Akhir'";
 }
 
 if ($GShift == 'ALL') {
