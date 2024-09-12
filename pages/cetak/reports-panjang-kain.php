@@ -1,7 +1,7 @@
 <?php
-  header("Content-type: application/octet-stream");
-  header("Content-Disposition: attachment; filename=PLANING REPORT UNTUK PANJANG KAIN PROSES DYEING " . substr($_GET['awal'], 0, 10) . ".xls"); //ganti nama sesuai keperluan
-  header('Cache-Control: max-age=0');
+header("Content-type: application/octet-stream");
+header("Content-Disposition: attachment; filename=PLANING REPORT UNTUK PANJANG KAIN PROSES DYEING " . substr($_GET['awal'], 0, 10) . ".xls"); //ganti nama sesuai keperluan
+header('Cache-Control: max-age=0');
 ?>
 <table width="100%" border="1">
     <thead>
@@ -49,21 +49,21 @@
     </thead>
     <tbody>
         <?php
-            include "../../koneksi.php";
-            $Awal = $_GET['awal'];
-            $Akhir = $_GET['akhir'];
-            if ($Awal != $Akhir) {
-                $Where = " DATE_FORMAT(c.tgl_update, '%Y-%m-%d %H:%i') BETWEEN '$Awal' AND '$Akhir' ";
-            } else {
-                $Where = " DATE_FORMAT(c.tgl_update, '%Y-%m-%d')='$Tgl' ";
-            }
+        include "../../koneksi.php";
+        $Awal = $_GET['awal'];
+        $Akhir = $_GET['akhir'];
+        if ($Awal != $Akhir) {
+            $Where = " CONVERT(datetime, c.tgl_update) BETWEEN '$Awal' AND '$Akhir' ";
+        } else {
+            $Where = " CONVERT(date, c.tgl_update)='$Tgl' ";
+        }
 
-            if ($_GET['shft'] == "ALL") {
-                $shft = " ";
-            } else {
-                $shft = " a.g_shift='$_GET[shft]' AND ";
-            }
-            $sql = mysqli_query($con, "SELECT
+        if ($_GET['shft'] == "ALL") {
+            $shft = null;
+        } else {
+            $shft = " a.g_shift = '$_GET[shft]' AND ";
+        }
+        $sql = sqlsrv_query($con, "SELECT
                                             a.tgl_buat,
                                             a.nokk,
                                             a.nodemand,
@@ -110,22 +110,22 @@
                                             c.tgl_update,
                                             a.proses
                                         FROM
-                                            tbl_schedule b
-                                        LEFT JOIN  tbl_montemp c ON c.id_schedule = b.id
-                                        LEFT JOIN tbl_hasilcelup a ON a.id_montemp=c.id
+                                            db_dying.tbl_schedule b
+                                        LEFT JOIN  db_dying.tbl_montemp c ON c.id_schedule = b.id
+                                        LEFT JOIN db_dying.tbl_hasilcelup a ON a.id_montemp = c.id
                                         WHERE
                                             $shft 
                                             $Where
                                         ORDER BY
                                             b.no_mesin ASC");
 
-            $no = 1;
+        $no = 1;
 
-            $c = 0;
+        $c = 0;
 
-            while ($rowd = mysqli_fetch_array($sql)) {
-	            ini_set("error_reporting", 1);
-                $q_itxviewkk        = db2_exec($conn2, "SELECT 
+        while ($rowd = sqlsrv_fetch_array($sql)) {
+            ini_set("error_reporting", 1);
+            $q_itxviewkk = db2_exec($conn2, "SELECT 
                                                             LISTAGG(TRIM(SUBCODE01), '') AS SUBCODE01,
                                                             LISTAGG(TRIM(SUBCODE02), '') AS SUBCODE02,
                                                             LISTAGG(TRIM(SUBCODE03), '') AS SUBCODE03,
@@ -145,9 +145,9 @@
                                                                 SUBCODE02,
                                                                 SUBCODE03,
                                                                 SUBCODE04)");
-                $row_itxviewkk      = db2_fetch_assoc($q_itxviewkk);
+            $row_itxviewkk = db2_fetch_assoc($q_itxviewkk);
 
-                $q_lg_standart  = db2_exec($conn2, "SELECT 
+            $q_lg_standart = db2_exec($conn2, "SELECT 
                                                         a.VALUEDECIMAL AS LEBAR,
                                                         a2.VALUEDECIMAL AS GRAMASI
                                                     FROM 
@@ -160,11 +160,12 @@
                                                         AND SUBCODE03 = '$row_itxviewkk[SUBCODE03]'
                                                         AND SUBCODE04 = '$row_itxviewkk[SUBCODE04]' 
                                                         AND ITEMTYPECODE = 'KGF'");
-                $d_lg_standart  = db2_fetch_assoc($q_lg_standart);
-        ?>
+            $d_lg_standart = db2_fetch_assoc($q_lg_standart);
+            ?>
             <tr>
                 <td><?= $no++; ?></td>
-                <td><?= substr($rowd['tgl_buat'], 0,10); ?></td>
+                <td><?= ($rowd['tgl_buat'] != null or $rowd['tgl_buat'] != '') ? $rowd['tgl_buat']->format('Y-m-d') : '' ?>
+                </td>
                 <td><?= $row_itxviewkk['SUBCODE01']; ?></td>
                 <td><?= $row_itxviewkk['SUBCODE02']; ?></td>
                 <td><?= $row_itxviewkk['SUBCODE03']; ?></td>
@@ -173,37 +174,45 @@
                 <td><?= $rowd['kapasitas'] ?></td>
                 <td><?= $rowd['proses'] ?></td>
                 <td><?= $rowd['Lubang'] ?></td>
-                <td><?php if($rowd['Lubang'] != 0) { echo number_format($rowd['kapasitas'] / $rowd['Lubang'], 2); } ?></td>
+                <td><?php if ($rowd['Lubang'] != 0) {
+                    echo number_format($rowd['kapasitas'] / $rowd['Lubang'], 2);
+                } ?></td>
                 <td><?= $rowd['lebar_a']; ?></td>
                 <td><?= $rowd['gramasi_a']; ?></td>
                 <td><?= $rowd['rol']; ?></td>
                 <td><?= $rowd['bruto']; ?></td>
-                <td><?php if($rowd['rol'] != 0 && is_numeric($rowd['rol'])){ echo number_format($rowd['bruto'] / $rowd['rol'], 2); } ?></td>
-                <td><?php if($rowd['Lubang'] != 0 && $rowd['rol'] != 0){ echo number_format($rowd['rol'] / $rowd['Lubang'], 2); } ?></td>
-                <td><?= $rowd['l_r'].'/'.$rowd['l_r_2']; ?></td>
+                <td><?php if ($rowd['rol'] != 0 && is_numeric($rowd['rol'])) {
+                    echo number_format($rowd['bruto'] / $rowd['rol'], 2);
+                } ?></td>
+                <td><?php if ($rowd['Lubang'] != 0 && $rowd['rol'] != 0) {
+                    echo number_format($rowd['rol'] / $rowd['Lubang'], 2);
+                } ?></td>
+                <td><?= $rowd['l_r'] . '/' . $rowd['l_r_2']; ?></td>
                 <td><?= $rowd['cycle_time']; ?></td>
                 <td><?= $rowd['rpm']; ?></td>
                 <td><?= $rowd['blower']; ?></td>
                 <td><?= $rowd['tekanan']; ?></td>
                 <td><?= $rowd['nozzle']; ?></td>
                 <td><?= $rowd['plaiter']; ?></td>
-                <td><?= number_format(($rowd['lebar_a'] * $rowd['gramasi_a']) / 39.3701, 2) ; ?></td>
+                <td><?= number_format(($rowd['lebar_a'] * $rowd['gramasi_a']) / 39.3701, 2); ?></td>
                 <td>
-                    <?php if($rowd['rol'] != 0 && $rowd['lebar_a'] != 0 && $rowd['gramasi_a'] != 0 && $rowd['Lubang'] != 0) : ?>
+                    <?php if ($rowd['rol'] != 0 && $rowd['lebar_a'] != 0 && $rowd['gramasi_a'] != 0 && $rowd['Lubang'] != 0): ?>
                         <?= number_format(($rowd['bruto'] / $rowd['rol']) * ($rowd['rol'] / $rowd['Lubang']) / (($rowd['lebar_a'] * $rowd['gramasi_a']) / 39.3701) * 1000, 2); ?>
-                    <?php else : ?>
+                    <?php else: ?>
                         -
                     <?php endif; ?>
                 </td>
                 <td>
-                    <?php if($rowd['rol'] != 0 && $rowd['lebar_a'] != 0 && $rowd['gramasi_a'] != 0 && !empty($rowd['cycle_time']) && $rowd['Lubang'] != 0) : ?>
+                    <?php if ($rowd['rol'] != 0 && $rowd['lebar_a'] != 0 && $rowd['gramasi_a'] != 0 && !empty($rowd['cycle_time']) && $rowd['Lubang'] != 0): ?>
                         <?= number_format(($rowd['bruto'] / $rowd['rol']) * ($rowd['rol'] / $rowd['Lubang']) / (($rowd['lebar_a'] * $rowd['gramasi_a']) / 39.3701) * 1000 / ($rowd['cycle_time'] / 60), 2); ?>
-                    <?php else : ?>
+                    <?php else: ?>
                         -
                     <?php endif; ?>
                 </td>
                 <td>
-                    <?php if($rowd['kapasitas'] != 0){echo number_format($rowd['bruto'] / $rowd['kapasitas'], 2) * 100; } ?>%
+                    <?php if ($rowd['kapasitas'] != 0) {
+                        echo number_format($rowd['bruto'] / $rowd['kapasitas'], 2) * 100;
+                    } ?>%
                 </td>
                 <td></td><!-- DATE -->
                 <td></td><!-- BY -->
@@ -213,28 +222,17 @@
                 <td>`<?= $rowd['lot']; ?></td>
                 <td>
                     <?php
-                        $q_NCP      = mysqli_query($cond, "SELECT * FROM `tbl_ncp_qcf_now` WHERE prod_order = '$rowd[nokk]'");
-                        $row_NCP    = mysqli_fetch_assoc($q_NCP);
-                        echo isset($row_NCP['masalah']) ? $row_NCP['masalah'] : '';
-                        echo isset($row_NCP['masalah_dominan']) ? $row_NCP['masalah_dominan'] : '';
-                        // if($row_NCP['prod_order']){
-                        //     echo $row_NCP['masalah'].' - '.$row_NCP['masalah_dominan'];
-                        // }else{
-                        //     echo '-';
-                        // }
+                    $q_NCP = sqlsrv_query($cond, "SELECT * FROM db_qc.tbl_ncp_qcf_now WHERE prod_order = '$rowd[nokk]'");
+                    $row_NCP = sqlsrv_fetch_array($q_NCP);
+                    echo isset($row_NCP['masalah']) ? $row_NCP['masalah'] : '';
+                    echo isset($row_NCP['masalah_dominan']) ? $row_NCP['masalah_dominan'] : '';
                     ?>
-                </td><!-- Problem -->
+                </td>
                 <td>
                     <?php
-                        $q_commentline      = db2_exec($conn2, "SELECT LISTAGG(COMMENTTEXT, ' ') AS COMMENTTEXT FROM PRODUCTIONDEMANDSTEPCOMMENT WHERE PRODEMANDSTEPPRODEMANDCODE = '$rowd[nodemand]'");
-                        $row_commentline    = db2_fetch_assoc($q_commentline);
-                        echo isset($row_commentline['COMMENTTEXT']) ? $row_commentline['COMMENTTEXT'] : '';
-
-                        // if($row_commentline['PRODEMANDSTEPPRODEMANDCODE']){
-                        //     echo $row_commentline['COMMENTTEXT'];
-                        // }else{
-                        //     echo '-';
-                        // }
+                    $q_commentline = db2_exec($conn2, "SELECT LISTAGG(COMMENTTEXT, ' ') AS COMMENTTEXT FROM PRODUCTIONDEMANDSTEPCOMMENT WHERE PRODEMANDSTEPPRODEMANDCODE = '$rowd[nodemand]'");
+                    $row_commentline = db2_fetch_assoc($q_commentline);
+                    echo isset($row_commentline['COMMENTTEXT']) ? $row_commentline['COMMENTTEXT'] : '';
                     ?>
                 </td><!-- Final Inspection -->
                 <td></td><!-- Result -->
