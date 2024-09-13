@@ -2,6 +2,7 @@
 ini_set("error_reporting", 1);
 session_start();
 include "koneksi.php";
+include_once "../utils/helper.php";
 
 ?>
 
@@ -120,7 +121,7 @@ $Akhir	= isset($_POST['akhir']) ? $_POST['akhir'] : '';
             <td align="center"><?php echo $no; ?></td>
             <td align="center"><div class="btn-group">
             <a href="#" class="btn btn-danger btn-xs <?php if($_SESSION['akses']=='biasa'){ echo "disabled"; } ?>" onclick="confirm_delete('index1.php?p=hapusdatasalahresep&id=<?php echo $row1['id_a']; ?>');"><i class="fa fa-trash"></i> </a></div></td>
-            <td align="center"><?php echo $row1['tgl_buat'];?></td>
+            <td align="center"><?php echo cek($row1['tgl_buat']);?></td>
             <td><?php echo $row1['nokk'];?></td>
             <td><?php echo $row1['langganan'];?></td>
             <td><?php echo $row1['buyer'];?></td>

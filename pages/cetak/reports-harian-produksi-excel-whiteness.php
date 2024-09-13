@@ -7,6 +7,7 @@ ini_set("error_reporting", 1);
 include "../../koneksi.php";
 include "../../koneksiLAB.php";
 include "../../tgl_indo.php";
+include "../../utils/helper.php";
 //--
 $idkk = $_REQUEST['idkk'];
 $act = $_GET['g'];
@@ -70,13 +71,13 @@ if ($Awal == $Akhir) {
       if ($GShift == "ALL") {
         $shft = null;
       } else {
-        $shft = "  ISNULL(a.g_shift, c.g_shift) = '$GShift' AND ";
+        $shft = "  ISNULL(a.g_shift, c.g_shift) = '$GShift' ";
       }
 
       $start_date = $_GET['awal'];
       $stop_date = $_GET['akhir'];
 
-      $Where = " CONVERT(date, c.tgl_update) BETWEEN CONVERT(date,'$start_date') AND 'CONVERT(date,'$stop_date') ";
+      $Where = " AND CONVERT(date, c.tgl_update) BETWEEN CONVERT(date,'$start_date') AND CONVERT(date,'$stop_date') ";
       if ($Awal != "" and $Akhir != "") {
         $Where1 = "WHERE x.nokk  IS NOT  NULL";
       } else {
@@ -228,17 +229,13 @@ if ($Awal == $Akhir) {
                                 ORDER BY 
                                     x.tgl_update DESC");
 
-      if (!$sql) {
-        var_dump(sqlsrv_errors());
-      }
-
       $no = 1;
       while ($rowd = sqlsrv_fetch_array($sql)) {
         $sql_ITXVIEWKK = db2_exec($conn2, "SELECT * FROM ITXVIEWKK WHERE PRODUCTIONORDERCODE = '$rowd[nokk]' LIMIT 1");
         $dt_ITXVIEWKK = db2_fetch_assoc($sql_ITXVIEWKK);
 
-        $q_uploadspectro = sqlsrv_query($con_nowprd, "SELECT * FROM `upload_spectro` WHERE SUBSTR(batch_name, 1,8) = '$rowd[nokk]'");
-        $data_uploadspectro = sqlsrv_fetch_assoc($q_uploadspectro);
+        $q_uploadspectro = sqlsrv_query($con_nowprd, "SELECT * FROM nowprd.upload_spectro WHERE SUBSTRING(batch_name, 1,8) = '$rowd[nokk]'");
+        $data_uploadspectro = sqlsrv_fetch_array($q_uploadspectro, SQLSRV_FETCH_ASSOC);
 
         if (!empty($data_uploadspectro)) {
           $q_rsv_link_group = db2_exec($conn2, "SELECT
@@ -431,7 +428,7 @@ if ($Awal == $Akhir) {
           <td><?= $rowd['kapasitas']; ?></td>
           <td><?= $rowd['warna']; ?></td>
           <td><?= $rowd['no_warna']; ?></td>
-          <td><?= $rowd['tgl_in'] . ' ' . $rowd['jam_in']; ?></td>
+          <td><?= cek($rowd['tgl_in']) . ' ' . cek($rowd['jam_in']); ?></td>
           <td><?= $prd_rsv_link_group ?></td>
           <td><?= $whiteness; ?></td>
           <td><?= $tint; ?></td>

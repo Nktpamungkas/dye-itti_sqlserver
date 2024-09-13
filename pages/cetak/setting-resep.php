@@ -1,11 +1,11 @@
 <?php
-ini_set("error_reporting", 1);
 session_start();
-$conLab=mysqli_connect("10.0.0.10","dit","4dm1n","db_laborat");
-//--
+
+include "../../koneksi.php";
+include "../../utils/helper.php";
+
 $idkk = $_REQUEST['idkk'];
-$act = $_GET['g'];
-//-
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -30,16 +30,34 @@ $act = $_GET['g'];
 
 <body>
   <?php
-  $qry = mysqli_query($conLab,"SELECT *,DATE_FORMAT(now(),'%d %M %Y') as tgl FROM tbl_matching WHERE no_resep='$idkk'");
-  $data = mysqli_fetch_array($qry);
+  $qry = sqlsrv_query($conLab,"SELECT *, FORMAT(GETDATE(), 'dd MMMM yyyy') as tgl FROM db_laborat.tbl_matching WHERE no_resep='$idkk'");
+  $data = sqlsrv_fetch_array($qry);
   $ip_num = $_SERVER['REMOTE_ADDR'];
-  mysqli_query($conLab,"INSERT INTO log_status_matching SET
-            `ids` = '$idkk', 
-            `status` = 'print', 
-            `info` = 'cetak kartu matching', 
-            `do_by` = '$_SESSION[userLAB]', 
-            `do_at` = '$time', 
-            `ip_address` = '$ip_num'");
+
+  $sql = "INSERT INTO 
+            log_status_matching (
+              ids
+              [status]
+              info
+              do_by
+              do_at
+              ip_address
+            ) VALUES (
+              ?, ?, ?, ?, ?, ?
+            )";
+
+  $params = [
+    $idkk,
+    'print',
+    'cetak kartu matching',
+    @$_SESSION['userLAB'],
+    date("Y-m-d H:i:s"),
+    $ip_num,
+  ];
+
+  $params = array_trim_cek($params);
+
+  sqlsrv_query($conLab, $sql, $params);
   ?>
   <table width="100%" border="0">
     <tr style="font-size: 10px;">
@@ -94,7 +112,7 @@ $act = $_GET['g'];
       <tr>
         <td rowspan="2" style="border-right:0px #000000 solid;"><strong style="font-size: 21px;">T</strong>IME <strong style="font-size: 21px;">I</strong>N</td>
         <td rowspan="2" style="border-right:0px #000000 solid; border-left:0px #000000 solid;">:</td>
-        <td rowspan="2" style="border-left:0px #000000 solid;"><strong><?Php echo date("d-m-Y", strtotime($data['tgl_in'])); ?></strong></td>
+        <td rowspan="2" style="border-left:0px #000000 solid;"><strong><?Php echo cek($data['tgl_in'], "d-m-Y"); ?></strong></td>
         <td rowspan="2" style="border-right:0px #000000 solid;"><strong style="font-size: 21px;">K</strong>AIN</td>
         <td rowspan="2" style="border-right:0px #000000 solid; border-left:0px #000000 solid;">:</td>
         <td colspan="5" rowspan="2" style="border-left:0px #000000 solid;"><strong style="font-size: 8px;"><?Php if ($data['jenis_kain'] == "NULL") {
@@ -122,7 +140,7 @@ $act = $_GET['g'];
       <tr>
         <td rowspan="2" style="border-right:0px #000000 solid;"><strong style="font-size: 21px;">D</strong>ELIVERY</td>
         <td rowspan="2" style="border-right:0px #000000 solid; border-left:0px #000000 solid;">:</td>
-        <td rowspan="2" style="border-left:0px #000000 solid;"><strong><?Php echo date("d-m-Y", strtotime($data['tgl_delivery'])); ?></strong></td>
+        <td rowspan="2" style="border-left:0px #000000 solid;"><strong><?Php echo cek($data['tgl_delivery'], "d-m-Y"); ?></strong></td>
         <td rowspan="2" style="border-right:0px #000000 solid;"><strong style="font-size: 22px;">B</strong>ENANG</td>
         <td rowspan="2" style="border-right:0px #000000 solid; border-left:0px #000000 solid;">:</td>
         <td colspan="5" rowspan="2" style="border-left:0px #000000 solid;"><strong style="font-size: 8px;"><?Php if ($data['benang'] == "NULL") {
@@ -145,8 +163,8 @@ $act = $_GET['g'];
         <td colspan="2" align="right">&nbsp;&nbsp; &deg;C X&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Menit</td>
       </tr>
       <tr><?php $i = 1;
-          $sqlLamp = mysqli_query($conLab,"SELECT * FROM vpot_lampbuy where buyer = '$data[buyer]' order by flag"); ?>
-        <td rowspan="2" style="border-right:0px #000000 solid;" colspan="3"><strong>LAMPU</strong> : <?php while ($lamp = mysqli_fetch_array($sqlLamp)) {
+          $sqlLamp = sqlsrv_query($conLab,"SELECT * FROM db_laborat.vpot_lampbuy where buyer = '$data[buyer]' order by flag"); ?>
+        <td rowspan="2" style="border-right:0px #000000 solid;" colspan="3"><strong>LAMPU</strong> : <?php while ($lamp = sqlsrv_fetch_array($sqlLamp)) {
                                                                                                         echo $i++ . '.(' . $lamp['lampu'] . '), ';
                                                                                                       } ?>
         </td>
@@ -230,14 +248,14 @@ $act = $_GET['g'];
       </tr>
       <?php
       $no = 1;
-      $qry1 = mysqli_query($conLab,"SELECT * FROM tbl_matching_detail WHERE id_matching='$data[id]' ORDER BY flag ");
-      while ($r = mysqli_fetch_array($qry1)) { ?>
+      $qry1 = sqlsrv_query($conLab,"SELECT * FROM db_laborat.tbl_matching_detail WHERE id_matching='$data[id]' ORDER BY flag ");
+      while ($r = sqlsrv_fetch_array($qry1)) { ?>
         <tr>
           <?php if ($no < 2) { ?><td rowspan="<?php $sp = 12;
                                               echo $sp - $no; ?>"><a class="hurufvertical"><strong>SIDE A</strong></a></td> <?php } ?>
           <td align="center" style="height: 15px;"><?php echo strtoupper($r['kode']); ?></td>
           <td colspan="4"><?php echo $r['nama']; ?></td>
-          <td align="center"><?php echo $r['conc1']; ?></td>
+          <td align="center"><?php echo printf("%.4f", $r['conc1']); ?></td>
           <td>&nbsp;</td>
           <td>&nbsp;</td>
           <td>&nbsp;</td>
@@ -355,14 +373,14 @@ $act = $_GET['g'];
       </tr>
       <?php
       $no1 = 1;
-      $qry2 = mysqli_query($conLab,"SELECT * FROM tbl_matching_detail WHERE id_matching='$data[id]' and jenis='polyester' ORDER BY id ASC");
-      while ($r1 = mysqli_fetch_array($qry2)) { ?>
+      $qry2 = sqlsrv_query($conLab,"SELECT * FROM db_laborat.tbl_matching_detail WHERE id_matching='$data[id]' and jenis='polyester' ORDER BY id ASC");
+      while ($r1 = sqlsrv_fetch_array($qry2)) { ?>
         <tr>
           <?php if ($no1 < 2) { ?><td rowspan="<?php $sp1 = 15;
                                                 echo $sp1 - $no1; ?>"><a class="hurufvertical"><strong>SIDE B</strong></a></td> <?php } ?>
           <td align="center" style="height: 15px;"><?php echo strtoupper($r1['kode']); ?></td>
           <td colspan="4"><?php echo $r1['nama']; ?></td>
-          <td align="center"><?php echo $r1['lab']; ?></td>
+          <td align="center"><?php echo cek($r1['lab']); ?></td>
           <td>&nbsp;</td>
           <td>&nbsp;</td>
           <td>&nbsp;</td>
@@ -478,13 +496,13 @@ $act = $_GET['g'];
         <td align="center">&nbsp;</td>
         <td align="center">&nbsp;</td>
       </tr>
-      <tr> <?php $sqlOrder = mysqli_query($conLab,"SELECT * FROM tbl_orderchild where id_matching = '$data[id]' AND NOT `order` = '$data[no_order]' "); ?>
+      <tr> <?php $sqlOrder = sqlsrv_query($conLab,"SELECT * FROM db_laborat.tbl_orderchild where id_matching = '$data[id]' AND NOT [order] = '$data[no_order]' "); ?>
         <td rowspan="10"><a class="hurufvertical"><strong>SAMPLE</strong></a></td>
         <td rowspan="7" colspan="5" valign="top"> <?php if ($data['jenis_matching'] == "L/D") : ?>
             <strong style="font-size: 21px;">R</strong>EQUEST NO :
           <?php else : ?>
             <strong style="font-size: 21px;">NO.</strong>ORDER :
-            <?php endif; ?><?php echo $data['no_order'] ?>, <?php while ($order = mysqli_fetch_array($sqlOrder)) {
+            <?php endif; ?><?php echo $data['no_order'] ?>, <?php while ($order = sqlsrv_fetch_array($sqlOrder)) {
                                                               echo $order['order'] . ', ';
                                                             } ?><div align="right"><strong style="font-size: 21px;"><?php if($data['salesman_sample']=="1"){ echo "S/S"; } ?></strong></div></td>
         <td style="border-bottom: 0px; border-top:0px;" width="4%" align="center">&nbsp;</td>
@@ -566,7 +584,7 @@ $act = $_GET['g'];
 
 </html>
 <script>
-  setTimeout(function() {
-    window.print()
-  }, 1500);
+  // setTimeout(function() {
+  //   window.print()
+  // }, 1500);
 </script>

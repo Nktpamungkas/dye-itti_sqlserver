@@ -2,6 +2,7 @@
 ini_set("error_reporting", 1);
 include "../../koneksi.php";
 include "../../tgl_indo.php";
+include_once "../../utils/helper.php";
 //--
 $idkk=$_REQUEST['idkk'];
 $act=$_GET['g'];
@@ -163,7 +164,7 @@ border:hidden;
 		 ?>
           <tr valign="top">
             <td align="center" valign="middle"><?php echo $no; ?></td>
-            <td align="center" valign="middle"><?php echo date("d-M-y",strtotime($row1['tgl_buat']));?></td>
+            <td align="center" valign="middle"><?php echo cek($row1['tgl_buat']);?></td>
             <td align="center" valign="middle"><?php echo $row1['nokk'];?></td>
             <td align="center" valign="middle"><?php echo $row1['langganan'];?></td>
             <td align="center" valign="middle"><?php echo $row1['buyer'];?></td>

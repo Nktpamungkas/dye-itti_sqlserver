@@ -97,7 +97,7 @@
                                                         a.proses,
                                                         a.ket_status,
                                                         a.ket_kain,
-                                                        FORMAT(DATEDIFF(MINUTE, GETDATE(), b.tgl_target) / 60, '00') + ':' + FORMAT(DATEDIFF(MINUTE, GETDATE(), b.tgl_target) % 60, '00') AS lama
+                                                        FORMAT(DATEDIFF(MINUTE, GETDATE(), b.tgl_target) / 60, '00') + ':' + FORMAT(ABS(DATEDIFF(MINUTE, GETDATE(), b.tgl_target) % 60), '00') AS lama
                                                     FROM
                                                         db_dying.tbl_schedule a
                                                         LEFT JOIN db_dying.tbl_montemp b ON a.id = b.id_schedule 
@@ -110,30 +110,30 @@
                                         $no = 1;
                                         ?>
                                         <?php while ($row_detailkk = sqlsrv_fetch_array($q_detailkk)) { ?>
-                                        <tr bgcolor="antiquewhite">
-                                            <td align="center"><?php echo $row_detailkk['lama']; ?></a></td>
-                                            <td align="center"><?php echo $row_detailkk['no_mesin']; ?></a></td>
-                                            <td align="center"><?php echo $row_detailkk['nokk']; ?></td>
-                                            <td align="center"><?php echo $row_detailkk['nodemand']; ?></td>
-                                            <td><?php echo $row_detailkk['langganan']; ?></td>
-                                            <td><?php echo $row_detailkk['buyer']; ?></td>
-                                            <td align="center"><?php echo $row_detailkk['no_order']; ?></td>
-                                            <td align="center"><?php echo $row_detailkk['no_hanger']; ?></td>
-                                            <td><?php echo $row_detailkk['jenis_kain']; ?></td>
-                                            <td align="center"><?php echo $row_detailkk['warna']; ?></td>
-                                            <td align="center"><?php echo $row_detailkk['no_warna']; ?></td>
-                                            <td align="center"><a href="#"><?php echo $row_detailkk['lot']; ?></a></td>
-                                            <td align="center">
-                                                <?php echo $row_detailkk['tgl_delivery']->format('Y-m-d'); ?>
-                                            </td>
-                                            <td align="center"><?php echo $row_detailkk['rol'] . $row_detailkk['kk']; ?>
-                                            </td>
-                                            <td align="center"><?php echo $row_detailkk['bruto']; ?></td>
-                                            <td align="center"><?php echo $row_detailkk['proses']; ?></td>
-                                            <td align="center"><?php echo $row_detailkk['ket_status']; ?>
-                                                <br><?php echo $row_detailkk['ket_kain']; ?>
-                                            </td>
-                                        </tr>
+                                            <tr bgcolor="antiquewhite">
+                                                <td align="center"><?php echo $row_detailkk['lama']; ?></a></td>
+                                                <td align="center"><?php echo $row_detailkk['no_mesin']; ?></a></td>
+                                                <td align="center"><?php echo $row_detailkk['nokk']; ?></td>
+                                                <td align="center"><?php echo $row_detailkk['nodemand']; ?></td>
+                                                <td><?php echo $row_detailkk['langganan']; ?></td>
+                                                <td><?php echo $row_detailkk['buyer']; ?></td>
+                                                <td align="center"><?php echo $row_detailkk['no_order']; ?></td>
+                                                <td align="center"><?php echo $row_detailkk['no_hanger']; ?></td>
+                                                <td><?php echo $row_detailkk['jenis_kain']; ?></td>
+                                                <td align="center"><?php echo $row_detailkk['warna']; ?></td>
+                                                <td align="center"><?php echo $row_detailkk['no_warna']; ?></td>
+                                                <td align="center"><a href="#"><?php echo $row_detailkk['lot']; ?></a></td>
+                                                <td align="center">
+                                                    <?php echo $row_detailkk['tgl_delivery']->format('Y-m-d'); ?>
+                                                </td>
+                                                <td align="center"><?php echo $row_detailkk['rol'] . $row_detailkk['kk']; ?>
+                                                </td>
+                                                <td align="center"><?php echo $row_detailkk['bruto']; ?></td>
+                                                <td align="center"><?php echo $row_detailkk['proses']; ?></td>
+                                                <td align="center"><?php echo $row_detailkk['ket_status']; ?>
+                                                    <br><?php echo $row_detailkk['ket_kain']; ?>
+                                                </td>
+                                            </tr>
                                         <?php } ?>
                                     </tbody>
                                     <tfoot class="bg-red">
