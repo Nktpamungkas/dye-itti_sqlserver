@@ -1,21 +1,25 @@
 <?php
-ini_set("error_reporting", 1);
-session_start();
-include"koneksi.php";
 $nokk=$_GET['nokk'];
-$sqlCek=mysqli_query($con,"SELECT 
-a.*, c.id as idc FROM tbl_schedule a 
-LEFT JOIN tbl_montemp b ON a.id=b.`id_schedule` 
-LEFT JOIN tbl_hasilcelup c ON b.id=c.`id_montemp` 
-WHERE c.nokk='$nokk' 
-AND (c.proses='Celup Greige' OR c.proses='Cuci Misty' OR c.proses='Cuci Yarn Dye (Y/D)')
-ORDER BY a.id DESC LIMIT 1");
-$cek=mysqli_num_rows($sqlCek);
-$rcek=mysqli_fetch_array($sqlCek);
+$sqlCek=sqlsrv_query($con,"SELECT TOP 1 
+    a.*, 
+    c.id AS idc 
+FROM db_dying.tbl_schedule a 
+LEFT JOIN db_dying.tbl_montemp b ON a.id = b.id_schedule 
+LEFT JOIN db_dying.tbl_hasilcelup c ON b.id = c.id_montemp 
+WHERE 
+    c.nokk = '$nokk' 
+    AND 
+    (c.proses = 'Celup Greige' 
+     OR c.proses = 'Cuci Misty' 
+     OR c.proses = 'Cuci Yarn Dye (Y/D)')
+ORDER BY a.id DESC;
+", array(), array("Scrollable" => SQLSRV_CURSOR_KEYSET));
+$cek=sqlsrv_num_rows($sqlCek);
+$rcek=sqlsrv_fetch_array($sqlCek);
 
-$sqlCek1=mysqli_query($con,"SELECT * FROM tbl_salahresep WHERE nokk='$nokk' ORDER BY id DESC LIMIT 1");
-$cek1=mysqli_num_rows($sqlCek1);
-$rcek1=mysqli_fetch_array($sqlCek1);
+$sqlCek1=sqlsrv_query($con,"SELECT TOP 1 * FROM db_dying.tbl_salahresep WHERE nokk='$nokk' ORDER BY id DESC");
+$cek1=sqlsrv_num_rows($sqlCek1);
+$rcek1=sqlsrv_fetch_array($sqlCek1);
 ?>
 <form class="form-horizontal" action="" method="post" enctype="multipart/form-data" name="form1">
  	<div class="box box-info">
@@ -140,9 +144,9 @@ $rcek1=mysqli_fetch_array($sqlCek1);
 							<?php
 							$dtArr=$rcek1['jenis_kesalahan'];	
 							$data = explode(",",$dtArr);
-							$qCek1=mysqli_query($con,"SELECT jenis_salah FROM tbl_jenis_salah ORDER BY jenis_salah ASC");
+							$qCek1=sqlsrv_query($con,"SELECT jenis_salah FROM db_dying.tbl_jenis_salah ORDER BY jenis_salah ASC");
 							$i=0;	
-							while($dCek1=mysqli_fetch_array($qCek1)){ ?>
+							while($dCek1=sqlsrv_fetch_array($qCek1)){ ?>
 							<option value="<?php echo $dCek1['jenis_salah'];?>" <?php if($dCek1['jenis_salah']==$data[0] or $dCek1['jenis_salah']==$data[1] or $dCek1['jenis_salah']==$data[2] or $dCek1['jenis_salah']==$data[3] or $dCek1['jenis_salah']==$data[4] or $dCek1['jenis_salah']==$data[5]){echo "SELECTED";} ?>><?php echo $dCek1['jenis_salah'];?></option>
 							<?php $i++;} ?> 
 						</select>
@@ -156,8 +160,8 @@ $rcek1=mysqli_fetch_array($sqlCek1);
 				    	<select name="acc1" class="form-control select2" required>
 							<option value="">Pilih</option>
 							<?php 
-							$sqlKap=mysqli_query($con,"SELECT nama FROM tbl_staff WHERE jabatan='SPV' or jabatan='Colorist' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
-							while($rK=mysqli_fetch_array($sqlKap)){
+							$sqlKap=sqlsrv_query($con,"SELECT nama FROM db_dying.tbl_staff WHERE jabatan='SPV' or jabatan='Colorist' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
+							while($rK=sqlsrv_fetch_array($sqlKap)){
 							?>
 							<option value="<?php echo $rK['nama']; ?>" <?php if($rcek1['t_jawab1']==$rK['nama']){echo "SELECTED";} ?>><?php echo $rK['nama']; ?></option>
 							<?php } ?>
@@ -173,8 +177,8 @@ $rcek1=mysqli_fetch_array($sqlCek1);
 						<select name="acc2" class="form-control select2">
 							<option value="">Pilih</option>
 							<?php 
-							$sqlKap=mysqli_query($con,"SELECT nama FROM tbl_staff WHERE jabatan='SPV' or jabatan='Colorist' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
-							while($rK=mysqli_fetch_array($sqlKap)){
+							$sqlKap=sqlsrv_query($con,"SELECT nama FROM db_dying.tbl_staff WHERE jabatan='SPV' or jabatan='Colorist' or jabatan='Asst. Manager' or jabatan='Manager' or jabatan='Senior Manager' or jabatan='DMF' ORDER BY nama ASC");
+							while($rK=sqlsrv_fetch_array($sqlKap)){
 							?>
 							<option value="<?php echo $rK['nama']; ?>" <?php if($rcek1['t_jawab2']==$rK['nama']){echo "SELECTED";} ?>><?php echo $rK['nama']; ?></option>
 							<?php } ?>
@@ -230,18 +234,40 @@ $rcek1=mysqli_fetch_array($sqlCek1);
 				    
 			}
         } 
-  	  $sqlData=mysqli_query($con,"INSERT INTO tbl_salahresep SET
-	  	id_celup='$_POST[id]',
-		nokk='$_POST[nokk]',
-		shift='$_POST[shift]',
-		g_shift='$_POST[g_shift]',
-		jenis_kesalahan='$jk1',
-		t_jawab1='$_POST[acc1]',
-		t_jawab2='$_POST[acc2]',
-		ket='$ket',
-		tgl_buat=now(),
-		tgl_update=now()
-        ");	 	  
+
+		$sql = "INSERT INTO 
+					db_dying.tbl_salahresep (
+						id_celup,
+						nokk,
+						shift,
+						g_shift,
+						jenis_kesalahan,
+						t_jawab1,
+						t_jawab2,
+						ket,
+						tgl_buat,
+						tgl_update
+					) VALUES (
+						?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+					)
+        ";
+
+		$params = [
+			$_POST['id'],
+			$_POST['nokk'],
+			$_POST['shift'],
+			$_POST['g_shift'],
+			$jk1,
+			$_POST['acc1'],
+			$_POST['acc2'],
+			$ket,
+			date("Y-m-d H:i:s"),
+			date("Y-m-d H:i:s"),
+		];
+
+		$params = array_trim_cek($params);
+
+  	  $sqlData=sqlsrv_query($con, $sql, $params);	 	  
 	  
 		if($sqlData){  
 			echo "<script>swal({
@@ -271,16 +297,35 @@ $rcek1=mysqli_fetch_array($sqlCek1);
 				    
 			}
         }
-  	  $sqlData=mysqli_query($con,"UPDATE tbl_salahresep SET 
-	      id_celup='$_POST[id]',
-		  shift='$_POST[shift]',
-		  g_shift='$_POST[g_shift]',
-		  jenis_kesalahan='$jk1',
-		  t_jawab1='$_POST[acc1]',
-		  t_jawab2='$_POST[acc2]',
-		  ket='$ket',
-		  tgl_update=now()
-		  WHERE nokk='$_POST[nokk]'");	 	  
+
+	$sql = "UPDATE
+				db_dying.tbl_salahresep
+			SET 
+				id_celup= ?,
+				shift= ?,
+				g_shift= ?,
+				jenis_kesalahan= ?,
+				t_jawab1= ?,
+				t_jawab2= ?,
+				ket= ?,
+				tgl_update= ?
+			WHERE 
+				nokk= ?";
+	$params = [
+		$_POST['id'],
+		$_POST['shift'],
+		$_POST['g_shift'],
+		$jk1,
+		$_POST['acc1'],
+		$_POST['acc2'],
+		$ket,
+		date("Y-m-d H:i:s"),
+		$_POST['nokk'],
+	];
+
+	$params = array_trim_cek($params);
+
+	$sqlData=sqlsrv_query($con, $sql, $params);
 	  
 		if($sqlData){			
 			echo "<script>swal({
@@ -330,8 +375,7 @@ $rcek1=mysqli_fetch_array($sqlCek1);
 <?php 
 if($_POST['simpan_kesalahan']=="Simpan"){
 	$jenis_salah=strtoupper($_POST['jenis_salah']);
-	$sqlData1=mysqli_query($con,"INSERT INTO tbl_jenis_salah SET 
-		  jenis_salah='$jenis_salah'");
+	$sqlData1=sqlsrv_query($con,"INSERT INTO db_dying.tbl_jenis_salah (jenis_salah) VALUES('$jenis_salah') ");
 	if($sqlData1){	
 	echo "<script>swal({
   title: 'Data Telah Tersimpan',   
