@@ -1,10 +1,3 @@
-<?PHP
-ini_set("error_reporting", 1);
-session_start();
-$conLab=mysqli_connect("10.0.0.10","dit","4dm1n","db_laborat");
-
-?>
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -95,21 +88,21 @@ $RCode	= isset($_POST['rcode']) ? $_POST['rcode'] : '';
           <?php
             $no=1;
             if($RCode!=""){$idm=" AND a.idm='$RCode' ";}else{$idm=" ";}
-            if($Awal!=""){$tgl=" AND DATE_FORMAT( a.approve_at, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir' ";}else{$tgl=" ";}
+            if($Awal!=""){$tgl=" AND CONVERT( DATE, a.approve_at ) BETWEEN '$Awal' AND '$Akhir' ";}else{$tgl=" ";}
             if($Awal!="" OR $RCode!=""){
-                $qry1=mysqli_query($conLab,"SELECT a.id as id_status, a.created_at as tgl_buat_status, a.created_by as status_created_by, b.id as id_matching,
+                $qry1=sqlsrv_query($conLab,"SELECT a.id as id_status, a.created_at as tgl_buat_status, a.created_by as status_created_by, b.id as id_matching,
                 a.grp, a.matcher, a.idm, b.no_order, b.langganan, b.no_warna, b.warna, b.no_item, b.no_po, b.cocok_warna, a.approve_at, a.status
-                FROM tbl_status_matching a
-                JOIN tbl_matching b ON a.idm = b.no_resep
+                FROM db_laborat.tbl_status_matching a
+                JOIN db_laborat.tbl_matching b ON a.idm = b.no_resep
                 where (a.status = 'arsip' OR a.status= 'selesai') $tgl $idm");
             }else{
-                $qry1=mysqli_query($conLab,"SELECT a.id as id_status, a.created_at as tgl_buat_status, a.created_by as status_created_by, b.id as id_matching,
+                $qry1=sqlsrv_query($conLab,"SELECT a.id as id_status, a.created_at as tgl_buat_status, a.created_by as status_created_by, b.id as id_matching,
                 a.grp, a.matcher, a.idm, b.no_order, b.langganan, b.no_warna, b.warna, b.no_item, b.no_po, b.cocok_warna, a.approve_at, a.status
-                FROM tbl_status_matching a
-                JOIN tbl_matching b ON a.idm = b.no_resep
-                where DATE_FORMAT( a.approve_at, '%Y-%m-%d' ) BETWEEN '$Awal' AND '$Akhir'");
+                FROM db_laborat.tbl_status_matching a
+                JOIN db_laborat.tbl_matching b ON a.idm = b.no_resep
+                where CONVERT( DATE, a.approve_at ) BETWEEN '$Awal' AND '$Akhir'");
             }
-			while($row1=mysqli_fetch_array($qry1)){
+			while($row1=sqlsrv_fetch_array($qry1)){
 		 ?>
           <tr bgcolor="<?php echo $bgcolor; ?>">
             <td align="center"><?php echo $no; ?></td>
@@ -123,7 +116,7 @@ $RCode	= isset($_POST['rcode']) ? $_POST['rcode'] : '';
             <td><?php echo $row1['no_item'];?></td>
             <td><?php echo $row1['no_po'];?></td>
             <td><?php echo $row1['cocok_warna'];?></td>
-            <td><?php echo substr($row1["approve_at"], 0, 10);?></td>
+            <td><?php echo cek($row1["approve_at"]);?></td>
             </tr>
           <?php	$no++;  } ?>
         </tbody>
