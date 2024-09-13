@@ -1,4 +1,6 @@
 <?php
+include "koneksi.php";
+include "../utils/helper.php";
 ini_set("error_reporting", 1);
 $id = $_GET['id'];
 include "../koneksi.php";

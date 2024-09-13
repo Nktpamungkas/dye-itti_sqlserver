@@ -1,7 +1,8 @@
 <?PHP
 ini_set("error_reporting", 1);
 session_start();
-include"koneksi.php";
+include "koneksi.php";
+include "../utils/helper.php"
 
 ?>
 
@@ -86,14 +87,21 @@ where a.DocumentNo='$nokk' and (d.DepartmentName='KK Oke' or p.CounterDepartment
 	if($Dept!=""){$where1=" AND dept='$Dept' ";}else{ $where1=" ";}
 	if($NCP!=""){$where2=" AND no_ncp_gabungan='$NCP' ";}else{ $where2=" ";}
 	if($IDNCP!=""){$where3=" AND id='$IDNCP' ";}else{ $where3=" ";}		
-	$qry1=mysqli_query($cond,"SELECT *,DATEDIFF(tgl_rencana,DATE_FORMAT(now(),'%Y-%m-%d')) as lama, DATEDIFF(DATE_FORMAT(now(),'%Y-%m-%d'),tgl_rencana) as delay 
-	FROM tbl_ncp_qcf_now WHERE (ISNULL(analisa_masalah) or analisa_masalah='') ".$where.$where1.$where2.$where3." ORDER BY id ASC");
-			while($row1=mysqli_fetch_array($qry1)){
+	$qry1=sqlsrv_query($cond,"SELECT *,
+       DATEDIFF(DAY, GETDATE(), tgl_rencana) AS lama,
+       DATEDIFF(DAY, tgl_rencana, GETDATE()) AS delay
+FROM db_qc.tbl_ncp_qcf_now
+WHERE (analisa_masalah IS NULL OR analisa_masalah = '') ".$where.$where1.$where2.$where3." ORDER BY id ASC");
+			while($row1=sqlsrv_fetch_array($qry1)){
 		//$pos=posisi($row1[nokk]);		
 		//if($pos>0){}
 		//else{		
-		$sql=mysqli_query($cond,"SELECT COUNT(*) jml,tgl_terima,id FROM `tbl_qcf_ncp_tolak_new` WHERE id_qcf_ncp='$row1[id]' ORDER BY id DESC");
-		$r1=mysqli_fetch_array($sql);
+		$sql=sqlsrv_query($cond,"SELECT COUNT(*) AS jml,
+       tgl_terima,
+       id
+FROM db_qc.tbl_qcf_ncp_tolak_new WHERE id_qcf_ncp='$row1[id]' GROUP BY tgl_terima, id
+ORDER BY id DESC");
+		$r1=sqlsrv_fetch_array($sql);
 				if($row1['nokk_salinan']!=""){
 					$nokk1=$row1['nokk_salinan'];
 				}else{
@@ -103,7 +111,7 @@ where a.DocumentNo='$nokk' and (d.DepartmentName='KK Oke' or p.CounterDepartment
 		 ?>
           <tr bgcolor="<?php echo $bgcolor; ?>">
 			<td align="center"><font size="-1"><?php echo $no; ?></font></td>
-			<td align="center"><font size="-1"><?php echo $row1['tgl_buat'];?></font><br><div class="btn-group"><a href="#" class="btn btn-xs btn-primary analisa_masalah " id="<?php echo $row1['id'].".".$_POST['awal'].",".$_POST['akhir'];?>"><i class="fa fa-edit"></i></a><a href="pages/cetak/cetak_ncp_new.php?id=<?php echo $row1['id'];?>" class="btn btn-xs btn-danger disabled" target="_blank"><i class="fa fa-print"></i></a><a href="pages/cetak/cetak_ncp_new_pdf.php?id=<?php echo $row1['id'];?>" class="btn btn-xs btn-info disabled" target="_blank"><i class="fa fa-file-pdf-o"></i></a></div></td>
+			<td align="center"><font size="-1"><?php echo cek($row1['tgl_buat'],"Y-m-d H:i:s");?></font><br><div class="btn-group"><a href="#" class="btn btn-xs btn-primary analisa_masalah " id="<?php echo $row1['id'].".".$_POST['awal'].",".$_POST['akhir'];?>"><i class="fa fa-edit"></i></a><a href="pages/cetak/cetak_ncp_new.php?id=<?php echo $row1['id'];?>" class="btn btn-xs btn-danger disabled" target="_blank"><i class="fa fa-print"></i></a><a href="pages/cetak/cetak_ncp_new_pdf.php?id=<?php echo $row1['id'];?>" class="btn btn-xs btn-info disabled" target="_blank"><i class="fa fa-file-pdf-o"></i></a></div></td>
 			<td align="center"><?php if($row1['delay']>0){echo "<span class='label label-danger'>Delay ".$row1['delay']." Hari</span>";}else if($row1['delay']<=0 and $row1['delay']!=""){echo "<span class='label label-success'>".$row1['lama']." Hari Lagi</span>";}else {echo "<span class='label bg-fuchsia'>NCP belum-diterima</span>";}?><br>
 			<a href="#" class="posisi_kk" id="<?php echo $nokk1; ?>"><?php echo $nokk1; ?></a></td>
             <td><font size="-1"><?php echo $row1['langganan'];?></font><br><a href="StatusNCPNewUbah-<?php echo $row1['id']; ?>" class="btn <?php if($_SESSION['dept']!="QC"){ echo "disabled";}?>"><span class="label <?php if($row1['status']=="OK"){echo "label-success";}else{echo "label-warning";} ?> "><?php echo $row1['status'];?></span></a><?php if($row1['tgl_rencana']!="" and $row1['penyelesaian']==""){ echo"<span class='label label-primary'>Sudah diterima ".$row1['dept']."</span>";}else if($row1['tgl_rencana']!="" and $row1['penyelesaian']!=""){ echo"<span class='label label-danger'>Tunggu OK dari QCF</span>";}?></td>
@@ -113,7 +121,7 @@ where a.DocumentNo='$nokk' and (d.DepartmentName='KK Oke' or p.CounterDepartment
 					  <?php echo $row1['nokk']; ?>
 					  <?php if($r1['tgl_terima']=="" and $r1['jml']>0){ ?><a href="#" class="btn terima_ncp_lama" id="<?php echo $r1['id']; ?>"><span class="label label-success">NCP Lama</span></a>
 					   <?php } ?></td>
-            <td><font size="-1"><?php echo $row1['tgl_rencana'];?></font></td>
+            <td><font size="-1"><?php echo cek($row1['tgl_rencana'],"Y-m-d");?></font></td>
             <td><font size="-2"><?php echo $row1['jenis_kain'];?></font></td>
             <td align="center"><font size="-1"><?php echo $row1['lebar']."x".$row1['gramasi'];?></font></td>
             <td align="center"><font size="-1"><?php echo $row1['lot'];?></font></td>
