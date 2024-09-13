@@ -55,7 +55,7 @@ $Akhir	= isset($_POST['akhir']) ? $_POST['akhir'] : '';
     <div class="box">
       <div class="box-header with-border">
         <h3 class="box-title">Data Test Proses</h3><br>
-        <?php if($_POST['awal']!="") { ?><b>Periode: <?php echo $_POST['awal']." to ".$_POST['akhir']; ?></b>
+        <?php if(@$_POST['awal']!="") { ?><b>Periode: <?php echo $_POST['awal']." to ".$_POST['akhir']; ?></b>
 		<?php } ?>
         <div class="pull-right">
             <a href="pages/cetak/cetak_lapdatatestproses.php?awal=<?php echo $_POST['awal']; ?>&akhir=<?php echo $_POST['akhir']; ?>" class="btn btn-danger <?php if($_POST['awal']=="") { echo "disabled"; }?>" target="_blank">Cetak Lap Data Test Proses</a> 

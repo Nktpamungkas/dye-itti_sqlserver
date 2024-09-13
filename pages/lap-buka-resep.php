@@ -137,7 +137,8 @@
                                                                                        $where_jam 
                                                                                        $where_gshift
                                                                                     GROUP BY 
-                                                                                    CAST(createdatetime as DATE)");
+                                                                                    CAST(createdatetime as DATE)
+                                                                                    ORDER BY TGL");
                                                 $no = 1;
                                             ?>
                                             <?php while ($row_bukaresep = sqlsrv_fetch_array($q_bukaresep)) { ?>
