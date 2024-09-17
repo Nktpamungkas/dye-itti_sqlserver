@@ -3,13 +3,13 @@ include "../../koneksi.php";
 //require_once('dompdf/dompdf_config.inc.php'); autoload.inc.php
 require_once('dompdf/autoload.inc.php');
 
-ini_set("error_reporting", 1);	
+ini_set("error_reporting", 1);
 include "../../tgl_indo.php";
-$qry=mysqli_query($cond,"SELECT * FROM tbl_ncp_qcf WHERE id='".$_GET['id']."'");
-$d=mysqli_fetch_array($qry);
+$qry = sqlsrv_query($cond, "SELECT * FROM db_qc.tbl_ncp_qcf WHERE id='" . $_GET['id'] . "'");
+$d = sqlsrv_fetch_array($qry);
 ?>
 <?php
-  $html ='
+$html = '
 <html>
 <head>
 <title>Form NCP</title>
@@ -67,10 +67,10 @@ body{
       </table></td>
     </tr>
     <tr>
-      <td colspan="5" align="center"><font size="-1"><strong>No. NCP: '.$d['no_ncp'].'</strong></font></td>
+      <td colspan="5" align="center"><font size="-1"><strong>No. NCP: ' . $d['no_ncp'] . '</strong></font></td>
     </tr>
     <tr>
-      <td colspan="2" align="left">TANGGAL: '.tanggal_indo ($d['tgl_buat'],true).'</td>
+      <td colspan="2" align="left">TANGGAL: ' . tanggal_indo($d['tgl_buat'], true) . '</td>
       <td colspan="4" align="right">&nbsp;</td>
     </tr>
     <tr>
@@ -81,7 +81,7 @@ body{
       <td width="35%" style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['langganan']."/".$d['buyer'].'</td>
+	border-right:1px #000000 solid;">' . $d['langganan'] . "/" . $d['buyer'] . '</td>
       <td width="10%" style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -89,7 +89,7 @@ body{
       <td width="19%" style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['rol'].'</td>
+	border-right:1px #000000 solid;">' . $d['rol'] . '</td>
       <td width="5%" style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -97,7 +97,7 @@ body{
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['berat'].' kg</td>
+	border-right:1px #000000 solid;">' . $d['berat'] . ' kg</td>
     </tr>
     <tr>
       <td style="border-top:1px #000000 solid; 
@@ -107,7 +107,7 @@ body{
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['po'].'</td>
+	border-right:1px #000000 solid;">' . $d['po'] . '</td>
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -115,7 +115,7 @@ body{
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['lot'].'</td>
+	border-right:1px #000000 solid;">' . $d['lot'] . '</td>
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -123,7 +123,7 @@ body{
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['nokk'].'</td>
+	border-right:1px #000000 solid;">' . $d['nokk'] . '</td>
     </tr>
     <tr>
       <td style="border-top:1px #000000 solid; 
@@ -133,7 +133,7 @@ body{
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['no_order'].'</td>
+	border-right:1px #000000 solid;">' . $d['no_order'] . '</td>
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -141,7 +141,7 @@ body{
       <td colspan="3" style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['po_rajut'].'</td>
+	border-right:1px #000000 solid;">' . $d['po_rajut'] . '</td>
     </tr>
     <tr>
       <td style="border-top:1px #000000 solid; 
@@ -151,7 +151,7 @@ body{
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['no_hanger'].'/'.$d['jenis_kain'].'</td>
+	border-right:1px #000000 solid;">' . $d['no_hanger'] . '/' . $d['jenis_kain'] . '</td>
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -159,7 +159,7 @@ body{
       <td colspan="3" style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['no_warna'].'/'.$d['warna'].'</td>
+	border-right:1px #000000 solid;">' . $d['no_warna'] . '/' . $d['warna'] . '</td>
     </tr>
     <tr valign="top">
       <td style="border-top:1px #000000 solid; 
@@ -169,7 +169,7 @@ body{
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">'.$d['masalah'].'</td>
+	border-right:1px #000000 solid;">' . $d['masalah'] . '</td>
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -391,7 +391,7 @@ Penanggung Jawab</td>
       <td width="8%" style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
-	border-right:1px #000000 solid;">:'.$d['nsp'].'</td>
+	border-right:1px #000000 solid;">:' . $d['nsp'] . '</td>
       <td style="border-top:1px #000000 solid; 
 	border-bottom:1px #000000 solid;
 	border-left:1px #000000 solid; 
@@ -440,9 +440,9 @@ $dompdf = new Dompdf();
 
 $dompdf->loadHtml($html);
 // (Optional) Setup the paper size and orientation
-$dompdf->setPaper('A4','landscape'); //portrait, landscape
+$dompdf->setPaper('A4', 'landscape'); //portrait, landscape
 // Render the HTML as PDF
 $dompdf->render();
 // Output the generated PDF to Browser
-$dompdf->stream('form-NCP'.'.pdf', array("Attachment"=>0));
+$dompdf->stream('form-NCP' . '.pdf', array("Attachment" => 0));
 ?>

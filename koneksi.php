@@ -16,7 +16,7 @@ $dbLab = array("Database" => $lab, "UID" => $usernameSVR19, "PWD" => $passwordSV
 
 $con     = sqlsrv_connect($hostSVR19, $db_dying);
 $cond     = sqlsrv_connect($hostSVR19, $db_qc);
-$con_nowprd = sqlsrv_connect($hostSVR19, $nowprd);
+// $con_nowprd = sqlsrv_connect($hostSVR19, $nowprd);
 $conLab = sqlsrv_connect($hostSVR19, $dbLab);
 
 if ($con) {
@@ -27,10 +27,10 @@ if ($cond) {
 } else {
     exit("SQLSVR19 Connection failed to cond");
 }
-if ($con_nowprd) {
-} else {
-    exit("SQLSVR19 Connection failed to con_nowprd");
-}
+// if ($con_nowprd) {
+// } else {
+//     exit("SQLSVR19 Connection failed to con_nowprd");
+// }
 if ($conLab) {
 } else {
     exit("SQLSVR19 Connection failed to conLab");
