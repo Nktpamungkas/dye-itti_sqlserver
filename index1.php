@@ -420,6 +420,9 @@ desired effect
               <li class="<?php if ($_GET['p'] == "Status-Mesin") {
                             echo "active";
                           } ?>"><a href="?p=Status-Mesin"><i class="fa fa-line-chart text-danger"></i> <span>Status Mesin</span></a></li>
+              <li class="<?php if ($_GET['p'] == "Status-Mesin-Orgatex") {
+                                    echo "active";
+                                  } ?>"><a href="?p=Status-Mesin-Orgatex"><i class="fa fa-line-chart text-danger"></i><span>Status Mesin Orgatex</span></a></li>
               <li class=""><a href="pages/lot-keluar-full.php" target="_blank"><i class="fa fa-line-chart text-warning"></i> <span>Lot Keluar</span></a></li>
               <li class="<?php if ($_GET['p'] == "Monitoring-Tempelan" or $_GET['p'] == "Form-Monitoring" or $_GET['p'] == "Form-Monitoring-Washing") {
                             echo "active";
@@ -1186,6 +1189,24 @@ desired effect
         }
       });
     });
+
+        $(document).on('click', '.detail_status_orgatex', function(e) {
+      var m = $(this).attr("id");
+      $.ajax({
+        url: "pages/cek-status-mesin-orgatex.php",
+        type: "GET",
+        data: {
+          id: m,
+        },
+        success: function(ajaxData) {
+          $("#CekDetailStatusOrgatex").html(ajaxData);
+          $("#CekDetailStatusOrgatex").modal('show', {
+            backdrop: 'true'
+          });
+        }
+      });
+    });
+    
     $(document).on('click', '.edit_status_mesin', function(e) {
       var m = $(this).attr("id");
       $.ajax({
