@@ -13,7 +13,7 @@ include"./../koneksi.php";
             <title>Status Mesin Dyeing ITTI</title>
             <meta name="description" content="Figma htmlGenerator">
             <meta name="author" content="htmlGenerator">
-			<meta http-equiv="refresh" content="30">  
+			<!-- <meta http-equiv="refresh" content="30">   -->
             
             <link rel="stylesheet" href="styles.css">
             
